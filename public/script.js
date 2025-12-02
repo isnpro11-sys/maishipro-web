@@ -15,6 +15,8 @@ const boxReg = document.getElementById('registerBox');
 const boxOtp = document.getElementById('otpBox');
 const boxForgot = document.getElementById('forgotBox');
 const boxReset = document.getElementById('resetPassBox');
+// Modal Baru untuk Ganti Password
+const boxChangePass = document.getElementById('changePassModal');
 
 /* ============================================== */
 /* --- INIT: CEK LOGIN & SETUP --- */
@@ -198,7 +200,7 @@ function checkLoginState() {
         // --- SUDAH LOGIN ---
         const user = JSON.parse(userSession);
         
-        // 1. Update Header
+        // 1. Update Header (Kiri Atas)
         headerAuthArea.innerHTML = `
             <div class="header-user-area" onclick="switchMainTab('profile')">
                 <span class="user-name-header">${user.username}</span>
@@ -219,13 +221,20 @@ function checkLoginState() {
     }
 }
 
-// Render Halaman Berdasarkan Login
+// Render Halaman Berdasarkan Login (UPDATED: UI BARU)
 function renderAuthPages(isLoggedIn, user) {
     const transContent = document.getElementById('transaksi-content');
     const profileContent = document.getElementById('profile-content');
     const settingsContent = document.getElementById('pengaturan-content');
     const produkContent = document.getElementById('produk-content');
+    
+    // Update Floating Circle di Navbar Bawah
+    const navProfileImg = document.querySelector('.floating-circle');
+    
+    // Ambil Inisial Huruf Pertama
+    const userInitial = user ? user.username.charAt(0).toUpperCase() : '?';
 
+    // HTML untuk Login Prompt (Jika belum login)
     const loginPromptHTML = `
         <div class="auth-required-state">
             <i class="fas fa-lock lock-icon"></i>
@@ -240,9 +249,24 @@ function renderAuthPages(isLoggedIn, user) {
         if(transContent) transContent.innerHTML = loginPromptHTML;
         if(profileContent) profileContent.innerHTML = loginPromptHTML;
         if(settingsContent) settingsContent.innerHTML = loginPromptHTML;
-        if(produkContent) produkContent.innerHTML = loginPromptHTML; 
+        if(produkContent) produkContent.innerHTML = loginPromptHTML;
+        
+        // Reset Nav Image ke default
+        if(navProfileImg) navProfileImg.innerHTML = `<img src="https://api.deline.web.id/76NssFHmcI.png">`;
+
     } else {
-        // User Login Content
+        // --- LOGIKA SUDAH LOGIN ---
+
+        // 1. Update Navbar Bottom Image dengan Inisial (White BG)
+        if(navProfileImg) {
+            navProfileImg.innerHTML = `
+                <div style="width:100%; height:100%; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#205081; font-weight:bold; font-size:20px; border:2px solid #eee;">
+                    ${userInitial}
+                </div>
+            `;
+        }
+
+        // 2. Halaman Transaksi
         if(transContent) {
             transContent.innerHTML = `
                 <div class="empty-page" style="text-align:center; padding:40px; color:#999;">
@@ -251,23 +275,94 @@ function renderAuthPages(isLoggedIn, user) {
                 </div>
             `;
         }
+
+        // 3. Halaman PROFIL (View Only - Kotak Panjang)
         if(profileContent) {
             profileContent.innerHTML = `
-                <div class="info-box">
-                    <div style="text-align:center; margin-bottom:20px;">
-                        <img src="https://api.deline.web.id/76NssFHmcI.png" style="width:80px; border-radius:50%; border:3px solid #205081;">
-                        <h3 style="margin-top:10px;">${user.username}</h3>
-                        <p style="color:#666;">${user.email}</p>
+                <div class="profile-view-header">
+                    <div class="profile-view-avatar">${userInitial}</div>
+                    <div style="color:white; margin-top:10px; font-weight:bold;">${user.username}</div>
+                </div>
+                
+                <div class="profile-details-card">
+                    <div class="detail-row">
+                        <span class="detail-label">Username</span>
+                        <span class="detail-value">${user.username}</span>
                     </div>
-                    <div class="settings-group">
-                        <div class="settings-item"><i class="fas fa-coins"></i> Saldo Akun <span style="margin-left:auto; font-weight:bold;">Rp 0</span></div>
-                        <div class="settings-item"><i class="fas fa-star"></i> Member Level <span style="margin-left:auto; color:gold;">Basic</span></div>
+                    <div class="detail-row">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">${user.email}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Nomor WhatsApp</span>
+                        <span class="detail-value">${user.phone}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Password</span>
+                        <span class="detail-value">••••••••</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Member Level</span>
+                        <span class="level-badge">BASIC</span>
                     </div>
                 </div>
             `;
         }
+
+        // 4. Halaman PENGATURAN (Settings - Edit & Logout)
+        if(settingsContent) {
+            settingsContent.innerHTML = `
+                <div class="settings-page-wrapper">
+                    <div>
+                        <div class="profile-header-container">
+                            <div class="avatar-wrapper">
+                                <div class="avatar-circle-display">${userInitial}</div>
+                                <div class="camera-badge" onclick="alert('Fitur ganti foto belum tersedia di demo ini')">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-container" style="padding: 0 10px;">
+                            
+                            <div class="form-group-styled">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-input-styled" value="${user.username}" onchange="updateLocalUsername(this.value)">
+                            </div>
+
+                            <div class="form-group-styled">
+                                <label class="form-label">Email <i class="fas fa-lock" style="font-size:10px; margin-left:5px;"></i></label>
+                                <input type="text" class="form-input-styled permanent" value="${user.email}" readonly>
+                            </div>
+
+                            <div class="form-group-styled">
+                                <label class="form-label">Nomor WhatsApp <i class="fas fa-lock" style="font-size:10px; margin-left:5px;"></i></label>
+                                <input type="text" class="form-input-styled permanent" value="${user.phone}" readonly>
+                            </div>
+
+                            <div class="form-group-styled">
+                                <label class="form-label">Password</label>
+                                <div class="form-input-styled clickable" onclick="openChangePassModal()">
+                                    <span>••••••••</span>
+                                    <i class="fas fa-pen" style="color:#205081; font-size:12px;"></i>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="logout-area" style="padding: 0 10px;">
+                        <button class="btn-logout-bottom" onclick="logoutUser()">
+                            <i class="fas fa-sign-out-alt"></i> KELUAR AKUN
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Produk tetap sama
         if(produkContent) {
-            produkContent.innerHTML = `
+             produkContent.innerHTML = `
                 <div class="game-grid" style="background:transparent; padding:0;">
                    <div class="category-wrapper-bg" style="padding:0;">
                         <div class="category-card" style="margin-top:0;">
@@ -281,26 +376,6 @@ function renderAuthPages(isLoggedIn, user) {
                             </div>
                         </div>
                    </div>
-                </div>
-            `;
-        }
-        if(settingsContent) {
-            settingsContent.innerHTML = `
-                <div class="settings-group">
-                    <div class="settings-item">
-                        <i class="fas fa-user-edit"></i> Edit Profil
-                        <i class="fas fa-chevron-right" style="margin-left:auto; font-size:12px; color:#ccc;"></i>
-                    </div>
-                    <div class="settings-item">
-                        <i class="fas fa-lock"></i> Ubah Password
-                        <i class="fas fa-chevron-right" style="margin-left:auto; font-size:12px; color:#ccc;"></i>
-                    </div>
-                </div>
-                <div class="logout-container">
-                    <button class="btn-logout" onclick="logoutUser()">
-                        <i class="fas fa-sign-out-alt"></i> KELUAR AKUN
-                    </button>
-                    <p style="text-align:center; color:#ccc; font-size:11px; margin-top:10px;">Versi 1.0.0</p>
                 </div>
             `;
         }
@@ -331,7 +406,12 @@ function closeAuthModal() {
 }
 
 function switchAuth(type) {
+    // Sembunyikan semua box
     [boxLogin, boxReg, boxOtp, boxForgot, boxReset].forEach(b => { if(b) b.style.display = 'none'; });
+    
+    // Pastikan Change Pass Modal juga ketutup jika tidak dipanggil
+    const cpModal = document.getElementById('changePassModal');
+    if(cpModal) cpModal.style.display = 'none';
 
     if(type === 'login') boxLogin.style.display = 'block';
     if(type === 'register') { boxReg.style.display = 'block'; authMode = 'register'; }
@@ -566,4 +646,56 @@ if (searchInput) {
         searchOverlay.style.height = '0';
         document.body.classList.remove('lock-scroll');
     });
+}
+
+/* ============================================== */
+/* --- NEW FEATURES: SETTINGS & PASSWORD --- */
+/* ============================================== */
+
+// 1. Update Username Local (Simulasi)
+function updateLocalUsername(newName) {
+    if(!newName) return;
+    const userSession = JSON.parse(localStorage.getItem('user'));
+    userSession.username = newName;
+    localStorage.setItem('user', JSON.stringify(userSession));
+    
+    // Update tampilan header tanpa refresh full
+    document.querySelector('.user-name-header').innerText = newName;
+    checkLoginState(); // Refresh inisial
+}
+
+// 2. Buka Modal Ganti Password
+function openChangePassModal() {
+    // Tutup modal lain jika ada
+    document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
+    
+    const overlay = document.getElementById('authOverlay');
+    const modal = document.getElementById('changePassModal');
+    
+    overlay.classList.add('active');
+    if(modal) modal.style.display = 'block';
+}
+
+// 3. Handle Submit Ganti Password
+async function handleChangePassword(e) {
+    e.preventDefault();
+    const oldPass = document.getElementById('oldPass').value;
+    const newPass = document.getElementById('newPass').value;
+    
+    // Di real app, validasi password lama harus di server. 
+    // Di demo UI ini kita anggap valid jika form terisi.
+    
+    if(!oldPass || !newPass) return alert("Mohon isi semua bidang.");
+    
+    // Simulasi Loading
+    const btn = e.target.querySelector('button');
+    const oriText = btn.innerText;
+    btn.innerText = "Memproses..."; btn.disabled = true;
+
+    setTimeout(() => {
+        alert("Password Berhasil Diubah! Silakan login ulang.");
+        logoutUser();
+        btn.innerText = oriText; btn.disabled = false;
+        closeAuthModal();
+    }, 1500);
 }
