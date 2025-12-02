@@ -22,9 +22,174 @@ const boxReset = document.getElementById('resetPassBox');
 document.addEventListener('DOMContentLoaded', () => {
     checkLoginState();
     setupOtpInputs(); 
+    
+    // Check URL Hash untuk persistence (Agar tidak balik ke home saat refresh)
+    const hash = window.location.hash.substring(1);
+    if (hash && hash !== "") {
+        renderPage(hash, null);
+    } else {
+        const savedTab = localStorage.getItem('activeTab') || 'home';
+        switchMainTab(savedTab);
+    }
 });
 
-// Fungsi Utama: Mengatur Tampilan Berdasarkan Status Login
+/* ============================================== */
+/* --- FUNGSI NAVIGASI UTAMA (TAB & SPA) --- */
+/* ============================================== */
+const homeSection = document.getElementById('home-page');
+const detailSection = document.getElementById('detail-page');
+const pageTitle = document.getElementById('page-title');
+
+// 1. Ganti Tab Utama (Home, Transaksi, dll)
+function switchMainTab(tabName) {
+    localStorage.setItem('activeTab', tabName);
+    
+    // Sembunyikan Detail Page jika aktif
+    detailSection.classList.remove('active');
+    
+    // Hide semua section
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    
+    // Show target section
+    const target = document.getElementById(tabName + '-page');
+    if (target) target.classList.add('active');
+
+    // Update Bottom Nav
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    const activeNav = document.getElementById('nav-' + tabName);
+    if (activeNav) activeNav.classList.add('active');
+
+    // Bersihkan hash agar URL bersih saat di menu utama
+    history.pushState("", document.title, window.location.pathname + window.location.search);
+}
+
+// 2. Masuk ke Halaman Detail (Produk/Kategori)
+function goToPage(pageId, titleName) {
+    window.location.hash = pageId;
+    localStorage.setItem('currentTitle', titleName);
+    renderPage(pageId, titleName);
+}
+
+// 3. Render Halaman Detail
+function renderPage(pageId, titleName) {
+    // Sembunyikan semua tab utama
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    
+    // Tampilkan halaman detail
+    detailSection.classList.add('active');
+    window.scrollTo(0, 0);
+
+    if (titleName) {
+        pageTitle.innerText = titleName;
+    } else {
+        pageTitle.innerText = localStorage.getItem('currentTitle') || 'Detail Kategori';
+    }
+}
+
+// 4. Tombol Kembali
+function goBack() {
+    // Hapus hash
+    history.pushState("", document.title, window.location.pathname + window.location.search);
+    
+    detailSection.classList.remove('active');
+    // Kembali ke tab terakhir yang dibuka
+    const lastTab = localStorage.getItem('activeTab') || 'home';
+    switchMainTab(lastTab);
+}
+
+// 5. Handle Tombol Back Browser (Popstate)
+window.addEventListener('popstate', () => {
+    const hash = window.location.hash.substring(1);
+    if (!hash) {
+        detailSection.classList.remove('active');
+        const lastTab = localStorage.getItem('activeTab') || 'home';
+        switchMainTab(lastTab);
+    } else {
+        renderPage(hash, null);
+    }
+});
+
+/* ============================================== */
+/* --- SLIDER MANUAL + OTOMATIS (SWIPE) --- */
+/* ============================================== */
+const wrapper = document.getElementById('slider-wrapper');
+const container = document.getElementById('slider-container');
+const dots = document.querySelectorAll('.dot');
+const totalSlides = 3;
+let currentIndex = 0;
+let autoSlideInterval;
+let startX = 0;
+let endX = 0;
+
+// Fungsi Update Posisi
+function updateSlider() {
+    if(!wrapper) return;
+    wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+    dots.forEach(d => d.classList.remove('active'));
+    if(dots[currentIndex]) dots[currentIndex].classList.add('active');
+}
+
+// Fungsi Next Slide
+function nextSlide() {
+    currentIndex = (currentIndex + 1) % totalSlides;
+    updateSlider();
+}
+
+// Fungsi Start Otomatis
+function startAutoSlide() {
+    stopAutoSlide(); 
+    autoSlideInterval = setInterval(nextSlide, 4000); 
+}
+
+// Fungsi Stop Otomatis
+function stopAutoSlide() {
+    clearInterval(autoSlideInterval);
+}
+
+// Event Listeners Slider
+if (container) {
+    // 1. Touch Start
+    container.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        stopAutoSlide();
+    });
+
+    // 2. Touch Move
+    container.addEventListener('touchmove', (e) => {
+        endX = e.touches[0].clientX;
+    });
+
+    // 3. Touch End
+    container.addEventListener('touchend', () => {
+        if (startX > endX + 50) {
+            // Geser ke Kiri (Next)
+            nextSlide();
+        } else if (startX < endX - 50) {
+            // Geser ke Kanan (Prev)
+            currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+            updateSlider();
+        }
+        startAutoSlide();
+    });
+
+    // 4. Klik Dots Navigasi
+    dots.forEach(dot => {
+        dot.addEventListener('click', (e) => {
+            stopAutoSlide();
+            currentIndex = parseInt(e.target.dataset.index);
+            updateSlider();
+            startAutoSlide();
+        });
+    });
+
+    startAutoSlide();
+}
+
+/* ============================================== */
+/* --- AUTHENTICATION & LOGIN STATE --- */
+/* ============================================== */
+
+// Fungsi Cek State Login
 function checkLoginState() {
     const userSession = localStorage.getItem('user');
     const headerAuthArea = document.getElementById('headerAuthArea');
@@ -33,7 +198,7 @@ function checkLoginState() {
         // --- SUDAH LOGIN ---
         const user = JSON.parse(userSession);
         
-        // 1. Update Header (Pojok Kanan Atas)
+        // 1. Update Header
         headerAuthArea.innerHTML = `
             <div class="header-user-area" onclick="switchMainTab('profile')">
                 <span class="user-name-header">${user.username}</span>
@@ -41,32 +206,26 @@ function checkLoginState() {
             </div>
         `;
 
-        // 2. Render Isi Halaman (Transaksi, Profile, Pengaturan)
         renderAuthPages(true, user);
 
     } else {
         // --- BELUM LOGIN ---
-        
-        // 1. Update Header (Tombol Masuk)
         headerAuthArea.innerHTML = `
             <button class="btn-login-header" onclick="openAuthModal('login')">
                 <i class="fas fa-user-circle"></i> Masuk / Daftar
             </button>
         `;
-
-        // 2. Render Halaman Kosong (Minta Login)
         renderAuthPages(false, null);
     }
 }
 
-// Render Konten Halaman Dinamis
+// Render Halaman Berdasarkan Login
 function renderAuthPages(isLoggedIn, user) {
     const transContent = document.getElementById('transaksi-content');
     const profileContent = document.getElementById('profile-content');
     const settingsContent = document.getElementById('pengaturan-content');
     const produkContent = document.getElementById('produk-content');
 
-    // Template HTML jika BELUM Login
     const loginPromptHTML = `
         <div class="auth-required-state">
             <i class="fas fa-lock lock-icon"></i>
@@ -78,23 +237,20 @@ function renderAuthPages(isLoggedIn, user) {
     `;
 
     if (!isLoggedIn) {
-        // Tampilkan prompt login di halaman yang membutuhkan akses
         if(transContent) transContent.innerHTML = loginPromptHTML;
         if(profileContent) profileContent.innerHTML = loginPromptHTML;
         if(settingsContent) settingsContent.innerHTML = loginPromptHTML;
         if(produkContent) produkContent.innerHTML = loginPromptHTML; 
     } else {
-        // --- A. KONTEN TRANSAKSI (User Login) ---
+        // User Login Content
         if(transContent) {
             transContent.innerHTML = `
-                <div class="empty-page">
-                    <i class="fas fa-receipt"></i>
+                <div class="empty-page" style="text-align:center; padding:40px; color:#999;">
+                    <i class="fas fa-receipt" style="font-size:40px; margin-bottom:10px;"></i>
                     <p>Halo <b>${user.username}</b>, belum ada riwayat transaksi.</p>
                 </div>
             `;
         }
-
-        // --- B. KONTEN PROFILE (User Login) ---
         if(profileContent) {
             profileContent.innerHTML = `
                 <div class="info-box">
@@ -110,8 +266,6 @@ function renderAuthPages(isLoggedIn, user) {
                 </div>
             `;
         }
-
-        // --- C. KONTEN PRODUK (User Login) ---
         if(produkContent) {
             produkContent.innerHTML = `
                 <div class="game-grid" style="background:transparent; padding:0;">
@@ -124,20 +278,12 @@ function renderAuthPages(isLoggedIn, user) {
                                 <div class="cat-item" onclick="goToPage('topup-ff', 'Topup FF')">
                                     <img src="https://api.deline.web.id/BqQnrJVNPO.jpg" class="cat-img"><div class="cat-name">Free Fire</div>
                                 </div>
-                                <div class="cat-item" onclick="goToPage('topup-roblox', 'Topup Roblox')">
-                                    <img src="https://api.deline.web.id/zQxSf6aiv7.jpg" class="cat-img"><div class="cat-name">Roblox</div>
-                                </div>
-                                <div class="cat-item" onclick="goToPage('sewa-bot', 'Sewa Bot')">
-                                    <img src="https://api.deline.web.id/8ASC30F6zj.jpg" class="cat-img"><div class="cat-name">Bot WA</div>
-                                </div>
                             </div>
                         </div>
                    </div>
                 </div>
             `;
         }
-
-        // --- D. KONTEN PENGATURAN + LOGOUT (User Login) ---
         if(settingsContent) {
             settingsContent.innerHTML = `
                 <div class="settings-group">
@@ -149,23 +295,7 @@ function renderAuthPages(isLoggedIn, user) {
                         <i class="fas fa-lock"></i> Ubah Password
                         <i class="fas fa-chevron-right" style="margin-left:auto; font-size:12px; color:#ccc;"></i>
                     </div>
-                    <div class="settings-item">
-                        <i class="fas fa-bell"></i> Notifikasi
-                        <div style="margin-left:auto;"><i class="fas fa-toggle-on" style="color:#205081;"></i></div>
-                    </div>
                 </div>
-
-                <div class="settings-group">
-                    <div class="settings-item">
-                        <i class="fas fa-info-circle"></i> Tentang Aplikasi
-                        <i class="fas fa-chevron-right" style="margin-left:auto; font-size:12px; color:#ccc;"></i>
-                    </div>
-                    <div class="settings-item">
-                        <i class="fas fa-headset"></i> Hubungi CS
-                        <i class="fas fa-chevron-right" style="margin-left:auto; font-size:12px; color:#ccc;"></i>
-                    </div>
-                </div>
-
                 <div class="logout-container">
                     <button class="btn-logout" onclick="logoutUser()">
                         <i class="fas fa-sign-out-alt"></i> KELUAR AKUN
@@ -177,46 +307,15 @@ function renderAuthPages(isLoggedIn, user) {
     }
 }
 
-// FUNGSI LOGOUT (Tambahkan ini jika belum ada)
 function logoutUser() {
     localStorage.removeItem('user');
     alert("Berhasil keluar.");
-    checkLoginState(); // Refresh tampilan
-    switchMainTab('home'); // Kembali ke home
+    checkLoginState(); 
+    switchMainTab('home'); 
 }
 
 /* ============================================== */
-/* --- NAVIGASI HALAMAN (SPA) --- */
-/* ============================================== */
-const homeSection = document.getElementById('home-page');
-const detailSection = document.getElementById('detail-page');
-const pageTitle = document.getElementById('page-title');
-
-function goToPage(pageId, titleName) {
-    window.location.hash = pageId;
-    localStorage.setItem('currentTitle', titleName);
-    renderPage(pageId, titleName);
-}
-
-function renderPage(pageId, titleName) {
-    homeSection.classList.remove('active');
-    detailSection.classList.add('active');
-    window.scrollTo(0, 0);
-    pageTitle.innerText = titleName || localStorage.getItem('currentTitle') || 'Detail';
-}
-
-window.addEventListener('popstate', () => {
-    const hash = window.location.hash.substring(1);
-    if (!hash) {
-        detailSection.classList.remove('active');
-        homeSection.classList.add('active');
-    } else {
-        renderPage(hash, null);
-    }
-});
-
-/* ============================================== */
-/* --- AUTHENTICATION LOGIC (API) --- */
+/* --- AUTH MODAL LOGIC & TOGGLE PASS --- */
 /* ============================================== */
 
 function openAuthModal(type) {
@@ -244,14 +343,24 @@ function switchAuth(type) {
     if(type === 'reset') boxReset.style.display = 'block';
 }
 
+// 1. Fitur Toggle Password (Mata Coret)
 function togglePass(id, icon) {
     const input = document.getElementById(id);
-    input.type = input.type === 'password' ? 'text' : 'password';
-    icon.classList.toggle('fa-eye');
-    icon.classList.toggle('fa-eye-slash');
+    if(input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    }
 }
 
-// B. REGISTER FLOW
+/* ============================================== */
+/* --- REGISTER & OTP LOGIC --- */
+/* ============================================== */
+
 async function handleRegisterRequest(e) {
     e.preventDefault();
     const username = document.getElementById('regUser').value;
@@ -279,36 +388,44 @@ async function handleRegisterRequest(e) {
             document.getElementById('otpTextEmail').innerText = `Kode dikirim ke ${email}`;
             switchAuth('otp');
         } else { alert(data.message || "Gagal mengirim OTP"); }
-    } catch (err) { alert("Gagal terhubung ke Server."); } 
+    } catch (err) { alert("Gagal terhubung ke Server (Mode Demo)."); } 
     finally { btn.innerText = "DAFTAR"; btn.disabled = false; }
 }
 
-// C. OTP LOGIC
+// 2. Setup OTP Input (Auto Paste & Focus)
 function setupOtpInputs() {
     const inputs = document.querySelectorAll('.otp-field');
     inputs.forEach((input, index) => {
+        // Handle Paste (Tempel 6 kode langsung isi semua)
         input.addEventListener('paste', (e) => {
             e.preventDefault();
-            const cleanData = e.clipboardData.getData('text').replace(/\D/g, ''); 
+            const cleanData = e.clipboardData.getData('text').replace(/\D/g, ''); // Ambil angka saja
+            
             if (cleanData) {
-                for (let i = 0; i < cleanData.length; i++) {
+                const len = cleanData.length;
+                for (let i = 0; i < len; i++) {
                     if (inputs[index + i]) {
                         inputs[index + i].value = cleanData[i];
-                        inputs[index + i].focus();
+                        // Focus ke input terakhir yang terisi
+                        if(index + i < inputs.length - 1) inputs[index + i + 1].focus();
+                        else inputs[index + i].focus();
                     }
                 }
             }
         });
+
         input.addEventListener('input', (e) => {
             if (isNaN(e.target.value)) { e.target.value = ""; return; }
             if (e.target.value !== "" && index < inputs.length - 1) inputs[index + 1].focus();
         });
+
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Backspace' && input.value === "" && index > 0) inputs[index - 1].focus();
         });
     });
 }
 
+// 3. Verifikasi OTP & Auto Login
 async function handleVerifyOtp() {
     let otpCode = "";
     document.querySelectorAll('.otp-field').forEach(field => otpCode += field.value);
@@ -324,8 +441,25 @@ async function handleVerifyOtp() {
                 body: JSON.stringify({ ...tempRegisterData, otp: otpCode })
             });
             const data = await res.json();
-            if (data.success) { alert("Pendaftaran Berhasil! Silakan Login."); switchAuth('login'); }
-            else { alert(data.message || "Kode OTP Salah!"); }
+            
+            if (data.success) { 
+                alert("Pendaftaran Berhasil!"); 
+                
+                // --- AUTO LOGIN LOGIC ---
+                // Simpan data user ke localStorage seolah-olah login sukses
+                const userData = {
+                    username: tempRegisterData.username,
+                    email: tempRegisterData.email,
+                    phone: tempRegisterData.phone
+                };
+                localStorage.setItem('user', JSON.stringify(userData));
+                
+                // Refresh tampilan & tutup modal
+                checkLoginState();
+                closeAuthModal();
+                
+            } else { alert(data.message || "Kode OTP Salah!"); }
+
         } else if (authMode === 'forgot') {
             const res = await fetch(`${API_URL}/check-otp`, {
                 method: 'POST',
@@ -340,7 +474,10 @@ async function handleVerifyOtp() {
     finally { btn.innerText = "VERIFIKASI"; btn.disabled = false; }
 }
 
-// D. LOGIN FLOW
+/* ============================================== */
+/* --- LOGIN, FORGOT, SEARCH --- */
+/* ============================================== */
+
 async function handleLogin(e) {
     e.preventDefault();
     const loginInput = document.getElementById('loginInput').value;
@@ -361,7 +498,7 @@ async function handleLogin(e) {
             alert(`Selamat datang, ${data.userData.username}!`);
             closeAuthModal();
             localStorage.setItem('user', JSON.stringify(data.userData));
-            checkLoginState(); // UPDATE UI
+            checkLoginState(); 
         } else {
             alert(data.message || "Login Gagal");
         }
@@ -369,7 +506,6 @@ async function handleLogin(e) {
     finally { btn.innerText = "LOGIN"; btn.disabled = false; }
 }
 
-// E. FORGOT & RESET
 async function handleForgotRequest(e) {
     e.preventDefault();
     const email = document.getElementById('forgotEmail').value;
@@ -411,21 +547,7 @@ async function handleResetPasswordFinal(e) {
     finally { btn.innerText = "UBAH PASSWORD"; btn.disabled = false; }
 }
 
-/* ============================================== */
-/* --- SLIDER & SEARCH LOGIC --- */
-/* ============================================== */
-const wrapper = document.getElementById('slider-wrapper');
-const dots = document.querySelectorAll('.dot');
-let slideIndex = 0;
-function showSlide(n) {
-    slideIndex = n;
-    if(slideIndex >= 3) slideIndex = 0;
-    if(wrapper) wrapper.style.transform = `translateX(-${slideIndex * 100}%)`;
-    dots.forEach(d => d.classList.remove('active'));
-    if(dots[slideIndex]) dots[slideIndex].classList.add('active');
-}
-setInterval(() => showSlide(slideIndex + 1), 4000);
-
+/* SEARCH OVERLAY */
 const searchInput = document.getElementById('searchInput');
 const searchOverlay = document.getElementById('searchOverlay');
 const closeSearchBtn = document.getElementById('closeSearchBtn');
