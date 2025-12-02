@@ -1,17 +1,20 @@
 /* ============================================== */
 /* --- KONFIGURASI BACKEND (WAJIB JALAN) --- */
 /* ============================================== */
-// Ganti dengan URL hosting backend Anda jika sudah online
-// Jika di lokal, pastikan 'node server.js' berjalan di port 3000
 const API_URL = "/api"; 
 
 /* --- VARIABLES --- */
-let tempRegisterData = {}; // Menyimpan data register sementara sebelum OTP
+let tempRegisterData = {}; // Menyimpan data register sementara
+let authMode = 'register'; // Mode: 'register' atau 'forgot'
+let currentEmail = ''; // Email yang sedang diproses
+
+/* DOM Elements */
 const authOverlay = document.getElementById('authOverlay');
 const boxLogin = document.getElementById('loginBox');
 const boxReg = document.getElementById('registerBox');
 const boxOtp = document.getElementById('otpBox');
 const boxForgot = document.getElementById('forgotBox');
+const boxReset = document.getElementById('resetPassBox');
 
 /* ============================================== */
 /* --- 1. NAVIGASI HALAMAN (SPA) --- */
@@ -39,7 +42,6 @@ function goBack() {
     homeSection.classList.add('active');
 }
 
-// Handle Back Button Browser
 window.addEventListener('popstate', () => {
     const hash = window.location.hash.substring(1);
     if (!hash) {
@@ -64,14 +66,28 @@ function openAuthModal(type) {
 function closeAuthModal() {
     authOverlay.classList.remove('active');
     document.body.classList.remove('lock-scroll');
+    // Bersihkan form input saat ditutup
+    document.querySelectorAll('.auth-box input').forEach(i => i.value = '');
 }
 
 function switchAuth(type) {
-    [boxLogin, boxReg, boxOtp, boxForgot].forEach(b => b.style.display = 'none');
+    // Sembunyikan semua box terlebih dahulu
+    [boxLogin, boxReg, boxOtp, boxForgot, boxReset].forEach(b => {
+        if(b) b.style.display = 'none';
+    });
+
+    // Tampilkan yang sesuai request
     if(type === 'login') boxLogin.style.display = 'block';
-    if(type === 'register') boxReg.style.display = 'block';
+    if(type === 'register') {
+        boxReg.style.display = 'block';
+        authMode = 'register'; 
+    }
     if(type === 'otp') boxOtp.style.display = 'block';
-    if(type === 'forgot') boxForgot.style.display = 'block';
+    if(type === 'forgot') {
+        boxForgot.style.display = 'block';
+        authMode = 'forgot';
+    }
+    if(type === 'reset') boxReset.style.display = 'block';
 }
 
 function togglePass(id, icon) {
@@ -94,14 +110,15 @@ async function handleRegisterRequest(e) {
 
     if (password !== confirm) return alert("Password konfirmasi tidak cocok!");
 
-    // Simpan data di memory browser
+    // Set Data & Mode
     tempRegisterData = { username, email, phone, password };
+    currentEmail = email;
+    authMode = 'register';
 
     btn.innerText = "Mengirim Kode...";
     btn.disabled = true;
 
     try {
-        // Panggil API Backend (Kirim Email)
         const res = await fetch(`${API_URL}/request-otp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -117,7 +134,7 @@ async function handleRegisterRequest(e) {
         }
     } catch (err) {
         console.error(err);
-        alert("Gagal terhubung ke Server. Pastikan server.js jalan!");
+        alert("Gagal terhubung ke Server.");
     } finally {
         btn.innerText = "DAFTAR";
         btn.disabled = false;
@@ -140,26 +157,48 @@ async function handleVerifyOtp() {
 
     const btn = document.getElementById('btnVerifyBtn');
     btn.innerText = "Memproses...";
+    btn.disabled = true;
     
     try {
-        // Verifikasi OTP & Create User di DB
-        const res = await fetch(`${API_URL}/register-verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...tempRegisterData, otp: otpCode })
-        });
-        const data = await res.json();
+        if (authMode === 'register') {
+            // --- ALUR REGISTER ---
+            const res = await fetch(`${API_URL}/register-verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...tempRegisterData, otp: otpCode })
+            });
+            const data = await res.json();
 
-        if (data.success) {
-            alert("Pendaftaran Berhasil! Silakan Login.");
-            switchAuth('login');
-        } else {
-            alert(data.message || "Kode OTP Salah!");
+            if (data.success) {
+                alert("Pendaftaran Berhasil! Silakan Login.");
+                switchAuth('login');
+            } else {
+                alert(data.message || "Kode OTP Salah!");
+            }
+
+        } else if (authMode === 'forgot') {
+            // --- ALUR LUPA PASSWORD (Check OTP dulu) ---
+            const res = await fetch(`${API_URL}/check-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: currentEmail, otp: otpCode })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // OTP Valid, simpan kode OTP untuk step selanjutnya
+                tempRegisterData.otp = otpCode; 
+                switchAuth('reset'); // Pindah ke box password baru
+            } else {
+                alert(data.message || "Kode OTP Salah!");
+            }
         }
+
     } catch (err) {
         alert("Terjadi kesalahan sistem.");
     } finally {
         btn.innerText = "VERIFIKASI";
+        btn.disabled = false;
     }
 }
 
@@ -171,6 +210,7 @@ async function handleLogin(e) {
     const btn = document.getElementById('btnLoginBtn');
 
     btn.innerText = "Loading...";
+    btn.disabled = true;
 
     try {
         const res = await fetch(`${API_URL}/login`, {
@@ -183,12 +223,12 @@ async function handleLogin(e) {
         if (data.success) {
             alert(`Selamat datang, ${data.userData.username}!`);
             closeAuthModal();
-            // Simpan sesi login (opsional)
+            // Simpan sesi
             localStorage.setItem('user', JSON.stringify(data.userData));
             
-            // Ubah tombol header jadi nama user (Visual Feedback)
+            // Ubah tampilan tombol header
             const headerBtn = document.querySelector('.btn-login-header');
-            headerBtn.innerHTML = `<i class="fas fa-user-check"></i> ${data.userData.username}`;
+            if(headerBtn) headerBtn.innerHTML = `<i class="fas fa-user-check"></i> ${data.userData.username}`;
         } else {
             alert(data.message || "Login Gagal");
         }
@@ -196,16 +236,21 @@ async function handleLogin(e) {
         alert("Gagal login. Cek koneksi server.");
     } finally {
         btn.innerText = "LOGIN";
+        btn.disabled = false;
     }
 }
 
-// E. FORGOT PASSWORD FLOW
+// E. FORGOT PASSWORD REQUEST (Tahap 1)
 async function handleForgotRequest(e) {
     e.preventDefault();
     const email = document.getElementById('forgotEmail').value;
     const btn = document.getElementById('btnForgotBtn');
 
+    currentEmail = email;
+    authMode = 'forgot';
+
     btn.innerText = "Mengirim...";
+    btn.disabled = true;
     
     try {
         const res = await fetch(`${API_URL}/request-otp`, {
@@ -216,11 +261,8 @@ async function handleForgotRequest(e) {
         const data = await res.json();
 
         if (data.success) {
-            alert("Kode OTP reset password telah dikirim ke email.");
-            document.getElementById('otpTextEmail').innerText = `Reset Pass: Kode ke ${email}`;
+            document.getElementById('otpTextEmail').innerText = `Reset Pass: Kode dikirim ke ${email}`;
             switchAuth('otp');
-            // Catatan: Logic reset password final butuh endpoint tambahan di server
-            // Di sini kita arahkan ke OTP dulu sebagai validasi
         } else {
             alert(data.message);
         }
@@ -228,6 +270,45 @@ async function handleForgotRequest(e) {
         alert("Error server");
     } finally {
         btn.innerText = "KIRIM KODE";
+        btn.disabled = false;
+    }
+}
+
+// F. FINAL RESET PASSWORD (Tahap 3 - Simpan Password Baru)
+async function handleResetPasswordFinal(e) {
+    e.preventDefault();
+    const newPass = document.getElementById('resetNewPass').value;
+    const confirmPass = document.getElementById('resetConfirmPass').value;
+    const btn = document.getElementById('btnResetFinal');
+
+    if (newPass !== confirmPass) return alert("Password konfirmasi tidak cocok!");
+
+    btn.innerText = "Menyimpan...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                email: currentEmail, 
+                otp: tempRegisterData.otp, // Ambil OTP yang tadi sudah divalidasi
+                newPassword: newPass 
+            })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            alert("Password berhasil diubah! Silakan login dengan password baru.");
+            switchAuth('login');
+        } else {
+            alert(data.message || "Gagal mengubah password.");
+        }
+    } catch (e) {
+        alert("Terjadi kesalahan.");
+    } finally {
+        btn.innerText = "UBAH PASSWORD";
+        btn.disabled = false;
     }
 }
 
@@ -235,7 +316,7 @@ async function handleForgotRequest(e) {
 /* --- 3. SLIDER & SEARCH LOGIC (UI) --- */
 /* ============================================== */
 
-// Slider Otomatis
+// Slider
 const wrapper = document.getElementById('slider-wrapper');
 const dots = document.querySelectorAll('.dot');
 let slideIndex = 0;
@@ -249,9 +330,9 @@ function showSlide(n) {
     if(dots[slideIndex]) dots[slideIndex].classList.add('active');
 }
 
-setInterval(() => showSlide(slideIndex + 1), 4000); // Auto geser 4 detik
+setInterval(() => showSlide(slideIndex + 1), 4000);
 
-// Search Overlay Logic
+// Search Overlay
 const searchInput = document.getElementById('searchInput');
 const searchOverlay = document.getElementById('searchOverlay');
 const closeSearchBtn = document.getElementById('closeSearchBtn');

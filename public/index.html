@@ -249,6 +249,24 @@
             <div class="mt-2"><span class="forgot-link" onclick="switchAuth('login')">Kembali ke Login</span></div>
         </div>
 
+        <div id="resetPassBox" class="auth-box" style="display: none;">
+            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+            <h2 class="auth-title">Password Baru</h2>
+            <p class="auth-subtitle">Silakan buat password baru Anda</p>
+
+            <form onsubmit="handleResetPasswordFinal(event)">
+                <div class="input-with-icon">
+                    <i class="fas fa-lock input-icon-left"></i>
+                    <input type="password" id="resetNewPass" placeholder="Password Baru" required>
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-check-circle input-icon-left"></i>
+                    <input type="password" id="resetConfirmPass" placeholder="Konfirmasi Password" required>
+                </div>
+                <button type="submit" class="btn-auth-action" id="btnResetFinal">UBAH PASSWORD</button>
+            </form>
+        </div>
+
     </div>
 
     <script src="script.js"></script>
