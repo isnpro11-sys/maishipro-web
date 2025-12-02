@@ -1,1 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maishipro Store</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
 
+    <div class="container">
+        
+        <div id="home-page" class="page-section active">
+            
+            <header class="header" id="mainHeader">
+                <div class="top-bar">
+                    <div class="logo">
+                        <i class="fas fa-bars"></i> Maishipro <i class="fas fa-cube" style="margin-left:5px; font-size:16px;"></i>
+                    </div>
+                    
+                    <div class="header-actions" id="headerAuthArea">
+                        <button class="btn-login-header" onclick="openAuthModal('login')">
+                            <i class="fas fa-user-circle"></i> Masuk / Daftar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Cari Game favoritmu...">
+                </div>
+            </header>
+
+            <div class="search-overlay" id="searchOverlay">
+                <div class="search-content-wrapper">
+                    <div class="search-section-title">
+                        <span>Riwayat pencarian</span>
+                        <span class="btn-close-search" id="closeSearchBtn">Tutup</span>
+                    </div>
+                    <ul class="history-list">
+                        <li class="history-item" onclick="goToPage('topup-ml', 'Topup Mobile Legends')">
+                            <i class="fas fa-history"></i> Topup Mobile Legends
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <section class="slider-section">
+                <div class="slider-container" id="slider-container">
+                    <div class="slider-wrapper" id="slider-wrapper">
+                        <div class="slide banner-1"></div>
+                        <div class="slide banner-2"></div>
+                        <div class="slide banner-3"></div>
+                    </div>
+                    <div class="dots-container" id="dots-container">
+                        <div class="dot active" data-index="0"></div>
+                        <div class="dot" data-index="1"></div>
+                        <div class="dot" data-index="2"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="info-box-section">
+                <div class="info-box">
+                    <h3>Cara Membeli</h3>
+                    <ol>
+                        <li>Pilih kategori atau produk yang Anda inginkan.</li>
+                        <li>Isi data akun & pilih nominal.</li>
+                        <li>Lanjut ke WhatsApp untuk pembayaran.</li>
+                    </ol>
+                </div>
+            </section>
+
+            <div class="beli-cepat-header">
+                <div class="tab-active">
+                    <i class="fas fa-fire" style="margin-right:5px; color: #ffeb3b;"></i> Populer
+                </div>
+            </div>
+
+            <div class="game-grid">
+                <div class="game-card" onclick="goToPage('topup-ml', 'Topup Mobile Legends')">
+                    <img src="https://api.deline.web.id/u8m7Yq2Pdu.jpg" alt="Topup MLBB" class="game-icon">
+                    <div class="game-name">Topup MLBB</div>
+                </div>
+                <div class="game-card" onclick="goToPage('topup-ff', 'Topup Free Fire')">
+                    <img src="https://api.deline.web.id/BqQnrJVNPO.jpg" alt="Topup FF" class="game-icon">
+                    <div class="game-name">Topup FF</div>
+                </div>
+                <div class="game-card" onclick="goToPage('topup-roblox', 'Topup Roblox')">
+                    <img src="https://api.deline.web.id/zQxSf6aiv7.jpg" alt="Topup RBLX" class="game-icon">
+                    <div class="game-name">Topup RBLX</div>
+                </div>
+                <div class="game-card" onclick="goToPage('sewa-bot', 'Sewa Bot WA')">
+                    <img src="https://api.deline.web.id/8ASC30F6zj.jpg" alt="Sewa bot" class="game-icon">
+                    <div class="game-name">Sewa bot</div>
+                </div>
+            </div>
+
+            <div class="category-wrapper-bg">
+                <div class="category-card">
+                    <div class="category-header"><i class="fas fa-gem icon-topup"></i> Top Up Game</div>
+                    <div class="cat-grid">
+                        <div class="cat-item" onclick="goToPage('topup-ml', 'Mobile Legends')">
+                            <img src="https://api.deline.web.id/u8m7Yq2Pdu.jpg" class="cat-img">
+                            <div class="cat-name">Mobile Legends</div>
+                        </div>
+                        <div class="cat-item" onclick="goToPage('topup-ff', 'Free Fire')">
+                            <img src="https://api.deline.web.id/BqQnrJVNPO.jpg" class="cat-img">
+                            <div class="cat-name">Free Fire</div>
+                        </div>
+                        <div class="cat-item" onclick="goToPage('topup-pubg', 'PUBG Mobile')">
+                            <img src="https://api.deline.web.id/UXAYVjr3MP.jpg" class="cat-img">
+                            <div class="cat-name">Pubg</div>
+                        </div>
+                        <div class="cat-item" onclick="goToPage('topup-roblox', 'Roblox')">
+                            <img src="https://api.deline.web.id/zQxSf6aiv7.jpg" class="cat-img">
+                            <div class="cat-name">Roblox</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="payment-section">
+                <div class="payment-header"><i class="fas fa-wallet"></i> Metode Pembayaran</div>
+                <div class="payment-icons">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/1200px-Logo_dana_blue.svg.png" class="pay-logo">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/2560px-Gopay_logo.svg.png" class="pay-logo">
+                    <img src="https://api.deline.web.id/GAUO7HRDdf.png" class="pay-logo" style="height: 30px;">
+                </div>
+            </section>
+
+            <nav class="bottom-navbar">
+                <div class="nav-item active"><i class="fas fa-home"></i><span>Home</span></div>
+                <div class="nav-item"><i class="fas fa-exchange-alt"></i><span>Transaksi</span></div>
+                <div class="nav-item center-item">
+                    <div class="floating-circle"><img src="https://api.deline.web.id/76NssFHmcI.png"></div>
+                    <span>Profile</span>
+                </div>
+                <div class="nav-item"><i class="fas fa-shopping-basket"></i><span>Produk</span></div>
+                <div class="nav-item"><i class="fas fa-cog"></i><span>Pengaturan</span></div>
+            </nav>
+
+        </div>
+
+        <div id="detail-page" class="page-section">
+            <div class="detail-header">
+                <div class="btn-back" onclick="goBack()"><i class="fas fa-arrow-left"></i></div>
+                <div class="detail-title" id="page-title">Detail Kategori</div>
+            </div>
+            <div class="detail-content" id="page-content">
+                <div class="empty-state-placeholder">
+                    <i class="fas fa-box-open" style="font-size: 40px; margin-bottom: 15px; color:#ccc;"></i>
+                    <p>Produk belum tersedia.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="authOverlay" class="auth-overlay">
+        
+        <div id="loginBox" class="auth-box">
+            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+            <div class="icon-circle-top"><i class="fas fa-cube"></i></div>
+            <h2 class="auth-title">Maishipro</h2>
+            <p class="auth-subtitle">Silakan masuk ke akun Anda</p>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="input-with-icon">
+                    <i class="fas fa-user input-icon-left"></i>
+                    <input type="text" id="loginInput" placeholder="Username atau Email" required>
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock input-icon-left"></i>
+                    <input type="password" id="loginPass" placeholder="Password" required>
+                    <i class="fas fa-eye-slash password-toggle" onclick="togglePass('loginPass', this)"></i>
+                </div>
+                <button type="submit" class="btn-auth-action" id="btnLoginBtn">LOGIN</button>
+            </form>
+
+            <div class="mt-2">Tidak memiliki akun? <span class="forgot-link" onclick="switchAuth('register')">Daftar</span></div>
+            <div class="mt-2"><span class="forgot-link" onclick="switchAuth('forgot')">Lupa Password?</span></div>
+        </div>
+
+        <div id="registerBox" class="auth-box" style="display: none;">
+            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+            <h2 class="auth-title">Daftar Akun</h2>
+            <p class="auth-subtitle">Isi data diri Anda</p>
+
+            <form onsubmit="handleRegisterRequest(event)">
+                <div class="input-with-icon">
+                    <i class="fas fa-user input-icon-left"></i>
+                    <input type="text" id="regUser" placeholder="Username" required>
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope input-icon-left"></i>
+                    <input type="email" id="regEmail" placeholder="Email Aktif" required>
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-phone input-icon-left"></i>
+                    <input type="tel" id="regPhone" placeholder="Nomor WhatsApp" required>
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock input-icon-left"></i>
+                    <input type="password" id="regPass" placeholder="Password" required>
+                    <i class="fas fa-eye-slash password-toggle" onclick="togglePass('regPass', this)"></i>
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-check-circle input-icon-left"></i>
+                    <input type="password" id="regConfirmPass" placeholder="Konfirmasi Password" required>
+                </div>
+                <button type="submit" class="btn-auth-action" id="btnRegBtn">DAFTAR</button>
+            </form>
+
+            <div class="mt-2">Sudah punya akun? <span class="forgot-link" onclick="switchAuth('login')">Login</span></div>
+        </div>
+
+        <div id="otpBox" class="auth-box" style="display: none;">
+            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+            <h2 class="auth-title">Verifikasi</h2>
+            <p class="auth-subtitle" id="otpTextEmail">Masukkan kode dari email Anda</p>
+
+            <div class="otp-container">
+                <input type="text" class="otp-field" maxlength="1" oninput="otpMove(this)">
+                <input type="text" class="otp-field" maxlength="1" oninput="otpMove(this)">
+                <input type="text" class="otp-field" maxlength="1" oninput="otpMove(this)">
+                <input type="text" class="otp-field" maxlength="1" oninput="otpMove(this)">
+                <input type="text" class="otp-field" maxlength="1" oninput="otpMove(this)">
+                <input type="text" class="otp-field" maxlength="1" oninput="otpMove(this)">
+            </div>
+            
+            <button onclick="handleVerifyOtp()" class="btn-auth-action" id="btnVerifyBtn">VERIFIKASI</button>
+            <div class="mt-2">Salah Email? <span class="forgot-link" onclick="switchAuth('register')">Kembali</span></div>
+        </div>
+
+        <div id="forgotBox" class="auth-box" style="display: none;">
+            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+            <h2 class="auth-title">Reset Password</h2>
+            <p class="auth-subtitle">Kami akan mengirimkan kode OTP</p>
+
+            <form onsubmit="handleForgotRequest(event)">
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope input-icon-left"></i>
+                    <input type="email" id="forgotEmail" placeholder="Masukkan Email Terdaftar" required>
+                </div>
+                <button type="submit" class="btn-auth-action" id="btnForgotBtn">KIRIM KODE</button>
+            </form>
+            <div class="mt-2"><span class="forgot-link" onclick="switchAuth('login')">Kembali ke Login</span></div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
