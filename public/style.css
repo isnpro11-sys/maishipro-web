@@ -8,6 +8,10 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .page-section.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .container { width: 100%; max-width: 100%; margin: 0; background: #fff; min-height: 100vh; overflow-x: hidden; position: relative; }
+/* Tambahkan kode ini di style.css */
+.logo .fa-bars {
+    margin-right: 15px; /* Ubah angka 15px sesuai jarak yang diinginkan */
+}
 
 /* --- HEADER --- */
 .header { background-color: #205081; padding: 15px; color: white; position: relative; z-index: 100; }
