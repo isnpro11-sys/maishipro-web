@@ -231,6 +231,17 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+app.post('/api/get-user', async (req, res) => {
+    try {
+        await connectDB();
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) return res.json({ success: false });
+        res.json({ success: true, userData: user });
+    } catch(e) {
+        res.json({ success: false });
+    }
+});
+
 // E. UPDATE PROFILE PIC
 app.post('/api/update-pic', async (req, res) => {
     try {
