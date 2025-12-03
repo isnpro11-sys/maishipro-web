@@ -187,9 +187,17 @@ function initializeDomElements() {
     boxVerification = document.getElementById('verificationModal');
 }
 
+/* --- FUNGSI RENDER TAMPILAN (VISUAL) --- */
+
 function initDynamicUI() {
+    // 1. Render Kategori Game (User View)
     renderHomeCategories();
-    renderNavbar(); 
+    
+    // 2. Render Navbar Bawah (User View)
+    // Cek apakah sedang mode admin? Jika iya, jangan render navbar
+    if (!isAdminMode) {
+        renderNavbar();
+    }
 }
 
 function renderHomeCategories() {
@@ -197,19 +205,67 @@ function renderHomeCategories() {
     if (!container) return;
 
     let html = '';
+
+    // Loop data dari HOME_CATEGORIES (Parameter)
     HOME_CATEGORIES.forEach(cat => {
-        let itemsHtml = '';
+        // A. Buat Header Kategori (Judul & Icon)
+        html += `
+        <div class="category-card">
+            <div class="category-header">
+                <i class="fas ${cat.icon} ${cat.colorClass}"></i> ${cat.title}
+            </div>
+            <div class="cat-grid">`;
+        
+        // B. Buat Item Game (Looping Items)
         cat.items.forEach(item => {
-            // Update onclick untuk support parameter URL friendly secara internal
-            itemsHtml += `
+            html += `
                 <div class="cat-item" onclick="goToPage('${item.id}', '${item.name}')">
                     <img src="${item.img}" class="cat-img" alt="${item.name}">
                     <div class="cat-name">${item.name}</div>
                 </div>`;
         });
-        html += `<div class="category-card"><div class="category-header"><i class="fas ${cat.icon} ${cat.colorClass}"></i> ${cat.title}</div><div class="cat-grid">${itemsHtml}</div></div>`;
+
+        // C. Tutup Div
+        html += `
+            </div>
+        </div>`;
     });
+
     container.innerHTML = html;
+}
+
+/* --- LOGIKA PINDAH MODE USER <-> ADMIN --- */
+
+// Masuk ke Mode Host/Admin
+function enableAdminMode() {
+    isAdminMode = true;
+    
+    // Tambahkan class CSS khusus ke body untuk memicu perubahan tampilan
+    document.body.classList.add('admin-view-active'); 
+    
+    // Render ulang navbar (agar hilang)
+    renderNavbar(); 
+
+    // Paksa pindah ke halaman admin
+    const adminPage = document.getElementById('admin-page');
+    if(adminPage) adminPage.classList.add('active');
+
+    // Load tab default admin
+    loadAdminTab('users', document.querySelector('.admin-menu-item'));
+}
+
+// Kembali ke Mode User
+function disableAdminMode() {
+    isAdminMode = false;
+    
+    // Hapus class CSS admin
+    document.body.classList.remove('admin-view-active');
+    
+    // Render ulang navbar (agar muncul kembali)
+    renderNavbar();
+    
+    // Kembali ke home user
+    switchMainTab('home');
 }
 
 function renderNavbar() {
