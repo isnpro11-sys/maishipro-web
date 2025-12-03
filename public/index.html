@@ -403,20 +403,35 @@
             <div class="mt-2">Sudah punya akun? <span class="forgot-link" onclick="switchAuth('login')">Login</span></div>
         </div>
 
-        <div id="otpBox" class="auth-box" style="display: none;">
-            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
-            <h2 class="auth-title">Verifikasi</h2>
-            <p class="auth-subtitle" id="otpTextEmail">Masukkan kode dari email Anda</p>
-            <div class="otp-container" id="otpContainer">
-                <input type="tel" class="otp-field" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                <input type="tel" class="otp-field" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                <input type="tel" class="otp-field" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                <input type="tel" class="otp-field" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                <input type="tel" class="otp-field" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                <input type="tel" class="otp-field" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-            </div>
-            <button onclick="handleVerifyOtp()" class="btn-auth-action" id="btnVerifyBtn">VERIFIKASI</button>
+<div id="customAlertModal" class="custom-alert-overlay" style="display: none;">
+    <div class="custom-alert-box">
+        <div class="custom-alert-header">
+            <i class="fas fa-cube"></i> Maishipro
         </div>
+        <div class="custom-alert-body">
+            <h4 id="customAlertTitle" style="margin-bottom:5px;">Notifikasi</h4>
+            <p id="customAlertMsg">Pesan notifikasi muncul di sini.</p>
+        </div>
+        <button class="btn-alert-ok" onclick="closeAppAlert()">OK</button>
+    </div>
+</div>
+
+<div id="otpBox" class="auth-box" style="display: none;">
+    <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+    <h2 class="auth-title">Verifikasi</h2>
+    <p class="auth-subtitle" id="otpTextEmail">Masukkan 6 digit kode dari email</p>
+    
+    <div class="icon-circle-top" style="background:#e0f2fe; color:#0284c7; margin-bottom:15px; width:50px; height:50px; font-size:20px;">
+        <i class="fas fa-shield-alt"></i>
+    </div>
+
+    <input type="number" id="otpInputLong" placeholder="Kode OTP" 
+           oninput="checkAutoSubmitOtp(this)"
+           style="width:100%; padding:12px; font-size:20px; text-align:center; letter-spacing:8px; border:2px solid #ddd; border-radius:8px; margin-bottom:15px; outline:none; font-weight:bold;">
+
+    <button onclick="handleVerifyOtp()" class="btn-auth-action" id="btnVerifyBtn">VERIFIKASI</button>
+    <div class="mt-2" style="font-size:12px; color:#666;">Tidak menerima kode? <span class="forgot-link">Kirim Ulang</span></div>
+</div>
 
         <div id="forgotBox" class="auth-box" style="display: none;">
             <span class="close-auth" onclick="closeAuthModal()">&times;</span>

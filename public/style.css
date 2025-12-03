@@ -653,3 +653,49 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
     text-align: left;
     line-height: 1.4;
 }
+
+/* ========================================= */
+/* --- CUSTOM ALERT STYLE (BARU) --- */
+/* ========================================= */
+.custom-alert-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+    backdrop-filter: blur(2px); animation: fadeIn 0.2s;
+}
+
+.custom-alert-box {
+    background: #fff; width: 300px; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: scale(0.9);
+    animation: popUp 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.custom-alert-header {
+    background: #205081; color: white; padding: 10px 15px;
+    font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px;
+}
+
+.custom-alert-body { padding: 20px; text-align: center; color: #333; }
+.custom-alert-body h4 { color: #205081; margin-bottom: 5px; }
+.custom-alert-body p { font-size: 13px; line-height: 1.5; color: #555; }
+
+.btn-alert-ok {
+    width: 100%; padding: 12px; border: none; background: #f8fafc;
+    color: #205081; font-weight: bold; cursor: pointer;
+    border-top: 1px solid #eee; transition: 0.2s;
+}
+.btn-alert-ok:hover { background: #e0f2fe; }
+
+@keyframes popUp { to { transform: scale(1); } }
+
+/* Fix Input Number arrow remove */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Tombol Loading State */
+.btn-auth-action:disabled {
+    background: #94a3b8; cursor: not-allowed; opacity: 0.7;
+}
+
+/* Fix Modal Tumpuk */
+#changePassModal { z-index: 2001; } /* Pastikan lebih tinggi dari overlay biasa */

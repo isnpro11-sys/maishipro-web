@@ -2,8 +2,6 @@
 /* --- KONFIGURASI BACKEND (WAJIB JALAN) --- */
 /* ============================================== */
 const API_URL = "/api"; 
-
-// --- KONFIGURASI ADMIN ---
 const ADMIN_EMAILS = ["ilyassyuhada00@gmail.com", "admin@gmail.com"]; 
 
 /* --- VARIABLES --- */
@@ -12,27 +10,26 @@ let authMode = 'register';
 let currentEmail = ''; 
 let cropper = null; 
 
-/* DOM Elements Global */
-const authOverlay = document.getElementById('authOverlay');
-const boxLogin = document.getElementById('loginBox');
-const boxReg = document.getElementById('registerBox');
-const boxOtp = document.getElementById('otpBox');
-const boxForgot = document.getElementById('forgotBox'); 
-const boxChangePass = document.getElementById('changePassModal');
-const boxAdminEdit = document.getElementById('adminEditUserModal');
-
-// Modal Baru: Verifikasi User
-const boxVerification = document.getElementById('verificationModal');
+/* DOM Elements Global (Akan di-init ulang saat DOMContentLoaded) */
+let authOverlay, boxLogin, boxReg, boxOtp, boxForgot, boxChangePass, boxAdminEdit, boxVerification;
 
 /* ============================================== */
-/* --- INIT: CEK LOGIN & SETUP --- */
+/* --- INIT: SETUP AWAL --- */
 /* ============================================== */
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Inject Element Tambahan (Alert & Style) secara otomatis via JS
+    injectCustomElements();
+
+    // 2. Inisialisasi DOM Elements
+    initializeDomElements();
+
+    // 3. Setup Listeners
     checkLoginState();
-    setupOtpInputs(); 
     setupFileUploadListener(); 
     setupSliderSwipe(); 
+    setupOtpInputHandler(); // Setup handler untuk input OTP baru
 
+    // 4. Routing Halaman
     const hash = window.location.hash.substring(1);
     if (hash && hash !== "") {
         renderPage(hash, null);
@@ -43,8 +40,88 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ============================================== */
+/* --- SYSTEM: INJECT STYLE & ALERT (OTOMATIS) --- */
+/* ============================================== */
+function injectCustomElements() {
+    // A. Inject CSS untuk Alert & Loading & OTP Panjang
+    const style = document.createElement('style');
+    style.innerHTML = `
+        /* Custom Alert Style */
+        .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); animation: fadeIn 0.2s; }
+        .custom-alert-box { background: #fff; width: 300px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
+        .custom-alert-header { background: #205081; color: white; padding: 12px 15px; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .custom-alert-body { padding: 25px 20px; text-align: center; color: #333; }
+        .custom-alert-body h4 { color: #205081; margin-bottom: 8px; font-size: 16px; }
+        .custom-alert-body p { font-size: 13px; line-height: 1.5; color: #555; margin: 0; }
+        .btn-alert-ok { width: 100%; padding: 12px; border: none; background: #f8fafc; color: #205081; font-weight: bold; cursor: pointer; border-top: 1px solid #eee; transition: 0.2s; }
+        .btn-alert-ok:hover { background: #e0f2fe; }
+        @keyframes popUp { to { transform: scale(1); } }
+        
+        /* Loading Button Style */
+        .btn-loading { pointer-events: none; opacity: 0.7; background: #555 !important; }
+
+        /* Input OTP Panjang Style */
+        .otp-long-input { width: 100%; padding: 15px; font-size: 24px; text-align: center; letter-spacing: 10px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 20px; outline: none; font-weight: bold; background: #fcfcfc; transition: 0.3s; }
+        .otp-long-input:focus { border-color: #205081; background: #fff; box-shadow: 0 4px 15px rgba(32, 80, 129, 0.1); }
+    `;
+    document.head.appendChild(style);
+
+    // B. Inject HTML Alert Box
+    const alertHtml = `
+    <div id="customAlertModal" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <div class="custom-alert-header">
+                <i class="fas fa-cube"></i> Maishipro
+            </div>
+            <div class="custom-alert-body">
+                <h4 id="customAlertTitle">Notifikasi</h4>
+                <p id="customAlertMsg">Pesan...</p>
+            </div>
+            <button class="btn-alert-ok" onclick="closeAppAlert()">OK / TUTUP</button>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+}
+
+function initializeDomElements() {
+    authOverlay = document.getElementById('authOverlay');
+    boxLogin = document.getElementById('loginBox');
+    boxReg = document.getElementById('registerBox');
+    boxOtp = document.getElementById('otpBox');
+    boxForgot = document.getElementById('forgotBox'); 
+    boxChangePass = document.getElementById('changePassModal');
+    boxAdminEdit = document.getElementById('adminEditUserModal');
+    boxVerification = document.getElementById('verificationModal');
+}
+
+/* ============================================== */
 /* --- HELPER FUNCTIONS --- */
 /* ============================================== */
+// Ganti Alert Browser dengan Custom Alert
+function showAlert(message, title = "Info") {
+    document.getElementById('customAlertTitle').innerText = title;
+    document.getElementById('customAlertMsg').innerText = message;
+    document.getElementById('customAlertModal').style.display = 'flex';
+}
+
+function closeAppAlert() {
+    document.getElementById('customAlertModal').style.display = 'none';
+}
+
+function setLoading(btnId, isLoading, defaultText) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    
+    if (isLoading) {
+        btn.dataset.originalText = defaultText;
+        btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Memproses...`;
+        btn.classList.add('btn-loading');
+    } else {
+        btn.innerText = defaultText;
+        btn.classList.remove('btn-loading');
+    }
+}
+
 function isAdmin(email) { return ADMIN_EMAILS.includes(email); }
 
 function formatDate(dateString) {
@@ -55,17 +132,255 @@ function formatDate(dateString) {
     } catch (e) { return dateString; }
 }
 
-function isValidPassword(pass) {
-    const minLength = 9;
-    const hasUpperCase = /[A-Z]/.test(pass); 
-    const hasNumber = /\d/.test(pass);       
-    return pass.length >= minLength && hasUpperCase && hasNumber;
+/* ============================================== */
+/* --- OTP HANDLING (AUTO SUBMIT & LONG INPUT) --- */
+/* ============================================== */
+function setupOtpInputHandler() {
+    // Kita ubah isi HTML otpBox agar menggunakan 1 input panjang
+    if(boxOtp) {
+        const otpContainer = boxOtp.querySelector('.otp-container');
+        if(otpContainer) {
+            // Ganti 6 kotak kecil dengan 1 kotak panjang
+            otpContainer.innerHTML = `
+                <input type="number" id="otpLongInput" class="otp-long-input" placeholder="------" oninput="handleOtpTyping(this)">
+            `;
+            // Hapus class container grid agar input panjang full width
+            otpContainer.style.display = 'block';
+        }
+    }
 }
 
-function isValidUsername(user) { return user && user.length >= 4; }
+function handleOtpTyping(el) {
+    const val = el.value;
+    // Batasi 6 karakter
+    if(val.length > 6) el.value = val.slice(0, 6);
+    
+    // Auto Submit jika sudah 6 karakter
+    if(el.value.length === 6) {
+        handleVerifyOtp();
+    }
+}
 
 /* ============================================== */
-/* --- NAVIGASI --- */
+/* --- AUTHENTICATION FLOW --- */
+/* ============================================== */
+
+function openAuthModal(type) {
+    authOverlay.classList.add('active');
+    document.body.classList.add('lock-scroll');
+    switchAuth(type);
+}
+
+function closeAuthModal() {
+    authOverlay.classList.remove('active');
+    document.body.classList.remove('lock-scroll');
+    document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
+}
+
+function switchAuth(type) {
+    document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
+    
+    if(type === 'login') {
+        boxLogin.style.display = 'block';
+    } 
+    else if(type === 'register') { 
+        boxReg.style.display = 'block'; 
+        authMode = 'register'; 
+    } 
+    else if(type === 'otp') { 
+        boxOtp.style.display = 'block'; 
+        // Focus ke input OTP
+        setTimeout(() => {
+            const input = document.getElementById('otpLongInput');
+            if(input) { input.value = ''; input.focus(); }
+        }, 100);
+    } 
+    else if(type === 'forgot') {
+        if(boxForgot) boxForgot.style.display = 'block';
+    }
+}
+
+function togglePass(id, icon) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
+}
+
+/* --- REGISTER --- */
+async function handleRegisterRequest(e) {
+    e.preventDefault();
+    const username = document.getElementById('regUser').value;
+    const email = document.getElementById('regEmail').value;
+    const phone = document.getElementById('regPhone').value;
+    const password = document.getElementById('regPass').value;
+    const confirm = document.getElementById('regConfirmPass').value;
+
+    if(password !== confirm) return showAlert("Konfirmasi Password tidak cocok!", "Error");
+
+    setLoading('btnRegBtn', true, "DAFTAR");
+    tempRegisterData = { username, email, phone, password };
+
+    try {
+        const res = await fetch(`${API_URL}/request-otp`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, username, phone, type: 'register' })
+        });
+        const data = await res.json();
+
+        if(data.success) {
+            showAlert(`Kode OTP telah dikirim ke ${email}`, "Berhasil");
+            switchAuth('otp');
+            document.getElementById('otpTextEmail').innerText = `Cek email: ${email}`;
+        } else {
+            // Handle error duplikat
+            let errMsg = data.message;
+            if (errMsg.includes("duplicate")) errMsg = "Username atau Email sudah terdaftar!";
+            showAlert(errMsg, "Gagal Daftar");
+        }
+    } catch(e){
+        showAlert("Gagal menghubungi server.", "Koneksi Error");
+    } finally {
+        setLoading('btnRegBtn', false, "DAFTAR");
+    }
+}
+
+/* --- VERIFY OTP & AUTO LOGIN --- */
+async function handleVerifyOtp() {
+    // Ambil value dari input panjang
+    const inputLong = document.getElementById('otpLongInput');
+    let otp = inputLong ? inputLong.value : '';
+
+    if (!otp || otp.length < 6) return showAlert("Masukkan 6 digit kode OTP!", "Peringatan");
+
+    setLoading('btnVerifyBtn', true, "VERIFIKASI");
+
+    try {
+        const res = await fetch(`${API_URL}/register-verify`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({...tempRegisterData, otp})
+        });
+        const data = await res.json();
+
+        if(data.success) {
+            // AUTO LOGIN
+            await performAutoLogin(tempRegisterData.username, tempRegisterData.password);
+        } else {
+            showAlert("Kode OTP Salah atau Kadaluarsa.", "Gagal");
+            setLoading('btnVerifyBtn', false, "VERIFIKASI");
+            // Reset input jika salah
+            if(inputLong) inputLong.value = '';
+        }
+    } catch(e){
+        showAlert("Terjadi kesalahan sistem.", "Error");
+        setLoading('btnVerifyBtn', false, "VERIFIKASI");
+    }
+}
+
+async function performAutoLogin(loginInput, password) {
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({loginInput, password})
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+            closeAuthModal();
+            localStorage.setItem('user', JSON.stringify(data.userData));
+            checkLoginState();
+            
+            const isAdminUser = isAdmin(data.userData.email);
+            switchMainTab(isAdminUser ? 'admin' : 'home');
+            
+            showAlert(`Selamat datang, ${data.userData.username}!`, "Login Sukses");
+        } else {
+            showAlert("Pendaftaran sukses, silakan login manual.", "Info");
+            switchAuth('login');
+        }
+    } catch(e) {
+        switchAuth('login');
+    } finally {
+        setLoading('btnVerifyBtn', false, "VERIFIKASI");
+    }
+}
+
+/* --- LOGIN --- */
+async function handleLogin(e) {
+    e.preventDefault();
+    const loginInput = document.getElementById('loginInput').value;
+    const password = document.getElementById('loginPass').value;
+    
+    setLoading('btnLoginBtn', true, "LOGIN");
+
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({loginInput, password})
+        });
+        const data = await res.json();
+        if(data.success) {
+            closeAuthModal();
+            localStorage.setItem('user', JSON.stringify(data.userData));
+            checkLoginState();
+            switchMainTab(isAdmin(data.userData.email) ? 'admin' : 'home');
+            
+            // Alert Kotak Putih Biru (Bukan alert biasa)
+            showAlert("Berhasil masuk ke akun Anda.", "Login Sukses");
+        } else {
+            showAlert(data.message || "Username atau Password Salah!", "Login Gagal");
+        }
+    } catch(e){
+        showAlert("Tidak dapat terhubung ke server.", "Koneksi Error");
+    } finally {
+        setLoading('btnLoginBtn', false, "LOGIN");
+    }
+}
+
+/* ============================================== */
+/* --- CHANGE PASSWORD (FIX BERTUMPUK) --- */
+/* ============================================== */
+function openChangePassModal() {
+    closeAuthModal(); // Tutup modal lain dulu
+    
+    setTimeout(() => {
+        authOverlay.classList.add('active'); 
+        boxChangePass.style.display = 'block'; 
+        // Pastikan z-index modal change pass tinggi
+        boxChangePass.style.zIndex = '2001';
+    }, 150);
+}
+
+async function handleChangePassword(e) {
+    e.preventDefault();
+    const user = JSON.parse(localStorage.getItem('user'));
+    const oldPass = document.getElementById('oldPass').value;
+    const newPass = document.getElementById('newPass').value;
+
+    const btn = e.target.querySelector('button');
+    const oldText = btn.innerText;
+    btn.innerHTML = "Memproses..."; btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/change-password`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ email: user.email, oldPass, newPass })
+        });
+        const data = await res.json();
+        if(data.success) {
+            showAlert("Password berhasil diperbarui!", "Sukses");
+            closeAuthModal();
+        } else {
+            showAlert(data.message || "Gagal mengubah password.", "Gagal");
+        }
+    } catch (e) {
+        showAlert("Error Server", "Error");
+    } finally {
+        btn.innerText = oldText; btn.disabled = false;
+    }
+}
+
+/* ============================================== */
+/* --- NAVIGASI & UI LOGIC --- */
 /* ============================================== */
 const detailSection = document.getElementById('detail-page');
 const pageTitle = document.getElementById('page-title');
@@ -112,7 +427,6 @@ function goBack() {
 /* --- SLIDER SWIPE --- */
 /* ============================================== */
 function setupSliderSwipe() {
-    // (Kode slider sama seperti sebelumnya)
     const wrapper = document.getElementById('slider-wrapper');
     const container = document.getElementById('slider-container');
     const dots = document.querySelectorAll('.dot');
@@ -217,52 +531,30 @@ function renderAuthPages(isLoggedIn, user, isOwner) {
                 </div>`;
         }
 
-        // --- PENGATURAN PAGE (MODIFIED FOR VERIFICATION) ---
+        // --- PENGATURAN PAGE ---
         if(settingsContent) {
             const avatarDisplay = user.profilePic 
                 ? `<img src="${user.profilePic}" class="avatar-circle-display" style="border:none;">`
                 : `<div class="avatar-circle-display">${userInitial}</div>`;
 
-            // Logika Status Verifikasi
-            const status = user.verificationStatus || 'unverified'; // unverified, pending, verified, rejected
-            let badgeHtml = '';
-            let isLocked = false;
-            let verifyButtonHtml = '';
-            let statusText = 'Belum Verifikasi';
+            const status = user.verificationStatus || 'unverified';
+            let badgeHtml = '', isLocked = false, verifyButtonHtml = '', statusText = 'Belum Verifikasi';
 
             if (status === 'verified') {
-                badgeHtml = `<div class="status-badge green">Terverifikasi</div>`;
-                isLocked = true;
-                statusText = ''; // Hilang jika sudah verif
+                badgeHtml = `<div class="status-badge green">Terverifikasi</div>`; isLocked = true; statusText = '';
             } else if (status === 'pending') {
-                badgeHtml = `<div class="status-badge yellow">Proses Verifikasi</div>`;
-                isLocked = true; 
-                statusText = 'Proses Verifikasi';
+                badgeHtml = `<div class="status-badge yellow">Proses Verifikasi</div>`; isLocked = true; statusText = 'Proses Verifikasi';
             } else if (status === 'rejected') {
-                badgeHtml = `<div class="status-badge red">Verifikasi Ditolak</div>`;
-                isLocked = false;
-                statusText = 'Ditolak (Coba Lagi)';
+                badgeHtml = `<div class="status-badge red">Verifikasi Ditolak</div>`; isLocked = false; statusText = 'Ditolak (Coba Lagi)';
                 verifyButtonHtml = `<button class="btn-verify-mini" onclick="openVerificationModal()">Verifikasi</button>`;
             } else {
-                // Unverified
-                badgeHtml = `<div class="status-badge red">Belum Terverifikasi</div>`;
-                isLocked = false;
+                badgeHtml = `<div class="status-badge red">Belum Terverifikasi</div>`; isLocked = false;
                 verifyButtonHtml = `<button class="btn-verify-mini" onclick="openVerificationModal()">Verifikasi</button>`;
             }
 
             const inputClass = isLocked ? 'form-input-styled permanent' : 'form-input-styled';
             const readOnlyAttr = isLocked ? 'readonly' : '';
-
-            // Area Verifikasi di bawah Password
-            let verificationActionArea = '';
-            if (status !== 'verified') {
-                verificationActionArea = `
-                    <div class="verification-action-row">
-                        ${verifyButtonHtml}
-                        <span class="verify-status-text">${statusText}</span>
-                    </div>
-                `;
-            }
+            let verificationActionArea = status !== 'verified' ? `<div class="verification-action-row">${verifyButtonHtml}<span class="verify-status-text">${statusText}</span></div>` : '';
 
             settingsContent.innerHTML = `
                 <div class="settings-page-wrapper">
@@ -308,6 +600,7 @@ function logoutUser() {
     localStorage.removeItem('user');
     checkLoginState(); 
     switchMainTab('home'); 
+    showAlert("Anda berhasil keluar.", "Logout");
 }
 
 /* ============================================== */
@@ -317,60 +610,46 @@ function logoutUser() {
 function openVerificationModal() {
     const user = JSON.parse(localStorage.getItem('user'));
     if(!user) return;
-
     authOverlay.classList.add('active');
     document.querySelectorAll('.auth-box').forEach(b => b.style.display='none');
     boxVerification.style.display = 'block';
 
-    // Step 1: Input
     document.getElementById('verifStep1').style.display = 'block';
     document.getElementById('verifStep2').style.display = 'none';
 
-    // Isi Data Saat Ini
     document.getElementById('verifUsername').value = user.username;
     document.getElementById('verifEmail').value = user.email;
     document.getElementById('verifPhone').value = user.phone;
 }
 
-// Handler Tombol Konfirmasi (Kirim OTP)
 async function handleVerificationConfirm(e) {
     e.preventDefault();
-    const user = JSON.parse(localStorage.getItem('user'));
     const newUsername = document.getElementById('verifUsername').value;
     const newEmail = document.getElementById('verifEmail').value;
     const newPhone = document.getElementById('verifPhone').value;
-    const btn = document.getElementById('btnVerifConfirm');
-
-    if(!newUsername || !newEmail || !newPhone) return alert("Semua data wajib diisi!");
-
-    btn.innerText = "Mengirim Kode..."; btn.disabled = true;
+    
+    setLoading('btnVerifConfirm', true, "KONFIRMASI");
 
     try {
-        // Request OTP ke Email Baru (atau lama jika sama)
         const res = await fetch(`${API_URL}/request-otp`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ 
-                email: newEmail, 
-                username: newUsername, 
-                phone: newPhone,
-                type: 'verification_update' 
+                email: newEmail, username: newUsername, phone: newPhone, type: 'verification_update' 
             })
         });
         const data = await res.json();
         
         if(data.success) {
-            // Pindah ke Step 2 (OTP)
             document.getElementById('verifStep1').style.display = 'none';
             document.getElementById('verifStep2').style.display = 'block';
         } else {
-            alert(data.message || "Gagal mengirim kode.");
+            showAlert(data.message || "Gagal mengirim kode.", "Gagal");
         }
-    } catch(e) { alert("Error Server"); }
-    finally { btn.innerText = "KONFIRMASI"; btn.disabled = false; }
+    } catch(e) { showAlert("Error Server", "Error"); }
+    finally { setLoading('btnVerifConfirm', false, "KONFIRMASI"); }
 }
 
-// Handler Submit OTP & Finalisasi
 async function handleVerificationSubmitOtp() {
     const user = JSON.parse(localStorage.getItem('user'));
     const otp = document.getElementById('verifOtpCode').value;
@@ -378,10 +657,9 @@ async function handleVerificationSubmitOtp() {
     const newUsername = document.getElementById('verifUsername').value;
     const newEmail = document.getElementById('verifEmail').value;
     const newPhone = document.getElementById('verifPhone').value;
-    const btn = document.getElementById('btnVerifSubmit');
-
-    if(!otp) return alert("Masukkan kode OTP!");
-    btn.innerText = "Memproses..."; btn.disabled = true;
+    
+    if(!otp) return showAlert("Masukkan kode OTP!", "Error");
+    setLoading('btnVerifSubmit', true, "KIRIM & VERIFIKASI");
 
     try {
         const res = await fetch(`${API_URL}/submit-verification`, {
@@ -395,20 +673,20 @@ async function handleVerificationSubmitOtp() {
         const data = await res.json();
 
         if(data.success) {
-            alert("Permintaan Verifikasi Terkirim! Menunggu persetujuan Admin.");
-            localStorage.setItem('user', JSON.stringify(data.user)); // Update session lokal
+            showAlert("Permintaan Verifikasi Terkirim! Menunggu persetujuan Admin.", "Sukses");
+            localStorage.setItem('user', JSON.stringify(data.user)); 
             closeAuthModal();
-            checkLoginState(); // Refresh tampilan settings
+            checkLoginState(); 
         } else {
-            alert(data.message || "Gagal verifikasi.");
+            showAlert(data.message || "Gagal verifikasi.", "Gagal");
         }
-    } catch(e) { alert("Error koneksi."); }
-    finally { btn.innerText = "KIRIM & VERIFIKASI"; btn.disabled = false; }
+    } catch(e) { showAlert("Error koneksi.", "Error"); }
+    finally { setLoading('btnVerifSubmit', false, "KIRIM & VERIFIKASI"); }
 }
 
 
 /* ============================================== */
-/* --- ADMIN DASHBOARD (ACCORDION STYLE) --- */
+/* --- ADMIN DASHBOARD --- */
 /* ============================================== */
 
 function loadAdminTab(tab, element) {
@@ -423,7 +701,6 @@ function loadAdminTab(tab, element) {
     else container.innerHTML = `<div class="empty-state-placeholder"><p>Menu ${tab} kosong.</p></div>`;
 }
 
-// 1. ADMIN USERS (Accordion)
 async function fetchAdminUsers() {
     try {
         const res = await fetch(`${API_URL}/admin/users`);
@@ -463,10 +740,9 @@ function renderAdminUserList(users) {
     container.innerHTML = html;
 }
 
-// 2. ADMIN VERIFIKASI (Accordion + Terima/Tolak)
 async function fetchAdminVerifications() {
     try {
-        const res = await fetch(`${API_URL}/admin/verifications`); // Get pending only
+        const res = await fetch(`${API_URL}/admin/verifications`); 
         const data = await res.json();
         renderAdminVerifList(data.users);
     } catch (e) { document.getElementById('admin-content-area').innerText = "Error."; }
@@ -491,7 +767,6 @@ function renderAdminVerifList(users) {
                 <div id="${uniqueId}" class="admin-acc-body" style="display:none;">
                     <div class="acc-row"><span>Email:</span> <b>${u.email}</b></div>
                     <div class="acc-row"><span>No HP:</span> <b>${u.phone}</b></div>
-                    
                     <div class="acc-actions">
                          <button class="btn-acc-action approve" onclick="adminVerifyAction('${u._id}', 'approve')">Terima</button>
                          <button class="btn-acc-action reject" onclick="adminVerifyAction('${u._id}', 'reject')">Tolak</button>
@@ -512,22 +787,17 @@ function toggleAccordion(id) {
 
 async function adminVerifyAction(userId, action) {
     if(!confirm(`Yakin ingin ${action === 'approve' ? 'Menerima' : 'Menolak'} verifikasi ini?`)) return;
-    
     try {
         const res = await fetch(`${API_URL}/admin/verify-action`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            method: 'POST', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ userId, action })
         });
         const data = await res.json();
-        if(data.success) {
-            alert(data.message);
-            fetchAdminVerifications(); // Refresh list
-        } else alert("Gagal.");
-    } catch(e) { alert("Error Server"); }
+        if(data.success) { showAlert(data.message, "Info"); fetchAdminVerifications(); } 
+        else showAlert("Gagal.", "Error");
+    } catch(e) { showAlert("Error Server", "Error"); }
 }
 
-// 3. Delete & Edit User (Standard)
 async function deleteUser(id, name) {
     if(!confirm(`Hapus ${name}?`)) return;
     try {
@@ -564,11 +834,11 @@ async function handleAdminUpdateUser(e) {
         });
         closeAdminEditModal();
         fetchAdminUsers();
-    } catch(e) { alert("Error"); }
+    } catch(e) { showAlert("Error Update", "Error"); }
 }
 
 /* ============================================== */
-/* --- AUTH & CROPPER UTILS (EXISTING) --- */
+/* --- CROPPER UTILS --- */
 /* ============================================== */
 function setupFileUploadListener() {
     const fileInput = document.getElementById('fileInput');
@@ -612,85 +882,4 @@ async function updateProfilePicOnServer(base64Image) {
             closeCropModal(); checkLoginState();
         }
     } catch (e) {}
-}
-
-function openAuthModal(type) {
-    authOverlay.classList.add('active');
-    document.body.classList.add('lock-scroll');
-    switchAuth(type);
-}
-function closeAuthModal() {
-    authOverlay.classList.remove('active');
-    document.body.classList.remove('lock-scroll');
-}
-function switchAuth(type) {
-    document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
-    if(type === 'login') boxLogin.style.display = 'block';
-    if(type === 'register') { boxReg.style.display = 'block'; authMode = 'register'; }
-    if(type === 'otp') boxOtp.style.display = 'block';
-    if(type === 'forgot') if(boxForgot) boxForgot.style.display = 'block';
-}
-function togglePass(id, icon) {
-    const input = document.getElementById(id);
-    input.type = input.type === 'password' ? 'text' : 'password';
-    icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
-}
-
-// Register & Login Handlers (Simplified for brevity, same logic as before)
-async function handleRegisterRequest(e) {
-    e.preventDefault();
-    const username = document.getElementById('regUser').value;
-    const email = document.getElementById('regEmail').value;
-    const phone = document.getElementById('regPhone').value;
-    const password = document.getElementById('regPass').value;
-    const confirm = document.getElementById('regConfirmPass').value;
-    if(password !== confirm) return alert("Password beda!");
-    tempRegisterData = { username, email, phone, password };
-    try {
-        const res = await fetch(`${API_URL}/request-otp`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, username, phone, type: 'register' })
-        });
-        if((await res.json()).success) switchAuth('otp');
-        else alert("Gagal kirim OTP");
-    } catch(e){}
-}
-function setupOtpInputs() {
-    document.querySelectorAll('.otp-field').forEach((input, index, inputs) => {
-        input.addEventListener('input', (e) => {
-            if(e.target.value !== "" && index < inputs.length - 1) inputs[index+1].focus();
-        });
-    });
-}
-async function handleVerifyOtp() {
-    let otp = ""; document.querySelectorAll('.otp-field').forEach(f => otp += f.value);
-    try {
-        const res = await fetch(`${API_URL}/register-verify`, {
-            method: 'POST', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({...tempRegisterData, otp})
-        });
-        if((await res.json()).success) { alert("Daftar Sukses"); switchAuth('login'); }
-        else alert("OTP Salah");
-    } catch(e){}
-}
-async function handleLogin(e) {
-    e.preventDefault();
-    const loginInput = document.getElementById('loginInput').value;
-    const password = document.getElementById('loginPass').value;
-    try {
-        const res = await fetch(`${API_URL}/login`, {
-            method: 'POST', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({loginInput, password})
-        });
-        const data = await res.json();
-        if(data.success) {
-            closeAuthModal();
-            localStorage.setItem('user', JSON.stringify(data.userData));
-            checkLoginState();
-            switchMainTab(isAdmin(data.userData.email) ? 'admin' : 'home');
-        } else alert("Login Gagal");
-    } catch(e){}
-}
-function openChangePassModal() {
-    closeAuthModal(); authOverlay.classList.add('active'); boxChangePass.style.display='block';
 }
