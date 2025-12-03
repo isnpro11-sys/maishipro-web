@@ -1,19 +1,32 @@
-// script.js
+/* ============================================== */
+/* --- KONFIGURASI BACKEND (WAJIB JALAN) --- */
+/* ============================================== */
 const API_URL = "/api"; 
-const ADMIN_EMAILS = ["owner@maishipro.com", "admin@gmail.com", "ilyassyuhada00@gmail.com"]; 
 
+// --- KONFIGURASI ADMIN ---
+const ADMIN_EMAILS = ["ilyassyuhada00@gmail.com", "admin@gmail.com"]; 
+
+/* --- VARIABLES --- */
 let tempRegisterData = {}; 
-let tempVerificationEmail = ''; 
 let authMode = 'register'; 
+let currentEmail = ''; 
 let cropper = null; 
 
-/* DOM Elements */
+/* DOM Elements Global */
 const authOverlay = document.getElementById('authOverlay');
 const boxLogin = document.getElementById('loginBox');
 const boxReg = document.getElementById('registerBox');
 const boxOtp = document.getElementById('otpBox');
+const boxForgot = document.getElementById('forgotBox'); 
+const boxChangePass = document.getElementById('changePassModal');
+const boxAdminEdit = document.getElementById('adminEditUserModal');
 
-// INIT
+// Modal Baru: Verifikasi User
+const boxVerification = document.getElementById('verificationModal');
+
+/* ============================================== */
+/* --- INIT: CEK LOGIN & SETUP --- */
+/* ============================================== */
 document.addEventListener('DOMContentLoaded', () => {
     checkLoginState();
     setupOtpInputs(); 
@@ -29,10 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Helper: Is Admin
+/* ============================================== */
+/* --- HELPER FUNCTIONS --- */
+/* ============================================== */
 function isAdmin(email) { return ADMIN_EMAILS.includes(email); }
 
-// Helper: Format Date
 function formatDate(dateString) {
     if(!dateString) return "-";
     try {
@@ -41,21 +55,38 @@ function formatDate(dateString) {
     } catch (e) { return dateString; }
 }
 
-// Navigation Functions
+function isValidPassword(pass) {
+    const minLength = 9;
+    const hasUpperCase = /[A-Z]/.test(pass); 
+    const hasNumber = /\d/.test(pass);       
+    return pass.length >= minLength && hasUpperCase && hasNumber;
+}
+
+function isValidUsername(user) { return user && user.length >= 4; }
+
+/* ============================================== */
+/* --- NAVIGASI --- */
+/* ============================================== */
+const detailSection = document.getElementById('detail-page');
+const pageTitle = document.getElementById('page-title');
+
 function switchMainTab(tabName) {
     localStorage.setItem('activeTab', tabName);
+    detailSection.classList.remove('active');
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
     
-    document.getElementById(tabName + '-page')?.classList.add('active');
-    document.getElementById('nav-' + tabName)?.classList.add('active');
+    const target = document.getElementById(tabName + '-page');
+    if (target) target.classList.add('active');
 
-    // Reset Admin Tab to Users if entering Admin
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    const activeNav = document.getElementById('nav-' + tabName);
+    if (activeNav) activeNav.classList.add('active');
+
     if(tabName === 'admin') {
-        const activeItem = document.querySelector('.admin-menu-item.active');
-        if(!activeItem) loadAdminTab('users', document.querySelector('.admin-menu-item'));
-        else loadAdminTab(activeItem.innerText.includes('User') ? 'users' : 'verif', activeItem);
+        const firstMenu = document.querySelector('.admin-menu-item'); 
+        if(firstMenu) loadAdminTab('users', firstMenu);
     }
+    history.pushState("", document.title, window.location.pathname + window.location.search);
 }
 
 function goToPage(pageId, titleName) {
@@ -66,34 +97,52 @@ function goToPage(pageId, titleName) {
 
 function renderPage(pageId, titleName) {
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-    document.getElementById('detail-page').classList.add('active');
-    document.getElementById('page-title').innerText = titleName || 'Detail';
-    window.scrollTo(0,0);
+    detailSection.classList.add('active');
+    window.scrollTo(0, 0);
+    pageTitle.innerText = titleName ? titleName : (localStorage.getItem('currentTitle') || 'Detail');
 }
 
 function goBack() {
-    document.getElementById('detail-page').classList.remove('active');
-    switchMainTab(localStorage.getItem('activeTab') || 'home');
     history.pushState("", document.title, window.location.pathname + window.location.search);
-}
-
-// Slider
-function setupSliderSwipe() {
-    // (Kode slider sama seperti sebelumnya)
-    const wrapper = document.getElementById('slider-wrapper');
-    if(!wrapper) return;
-    let currentIndex = 0;
-    setInterval(() => {
-        currentIndex = (currentIndex + 1) % 3;
-        wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
-        document.querySelectorAll('.dot').forEach((d, i) => {
-            d.classList.toggle('active', i === currentIndex);
-        });
-    }, 4000);
+    detailSection.classList.remove('active');
+    switchMainTab(localStorage.getItem('activeTab') || 'home');
 }
 
 /* ============================================== */
-/* --- AUTH & LOGIN STATE LOGIC --- */
+/* --- SLIDER SWIPE --- */
+/* ============================================== */
+function setupSliderSwipe() {
+    // (Kode slider sama seperti sebelumnya)
+    const wrapper = document.getElementById('slider-wrapper');
+    const container = document.getElementById('slider-container');
+    const dots = document.querySelectorAll('.dot');
+    const totalSlides = 3;
+    let currentIndex = 0;
+    let autoSlideInterval;
+    let startX = 0, endX = 0;
+
+    if(!wrapper) return;
+    function updateSlider() {
+        wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+        dots.forEach(d => d.classList.remove('active'));
+        if(dots[currentIndex]) dots[currentIndex].classList.add('active');
+    }
+    function nextSlide() { currentIndex = (currentIndex + 1) % totalSlides; updateSlider(); }
+    function startAutoSlide() { stopAutoSlide(); autoSlideInterval = setInterval(nextSlide, 4000); }
+    function stopAutoSlide() { clearInterval(autoSlideInterval); }
+    
+    container.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; stopAutoSlide(); });
+    container.addEventListener('touchmove', (e) => { endX = e.touches[0].clientX; });
+    container.addEventListener('touchend', () => {
+        if (startX > endX + 50) nextSlide();
+        else if (startX < endX - 50) { currentIndex = (currentIndex - 1 + totalSlides) % totalSlides; updateSlider(); }
+        startAutoSlide();
+    });
+    startAutoSlide();
+}
+
+/* ============================================== */
+/* --- LOGIN STATE & RENDER UI --- */
 /* ============================================== */
 
 function checkLoginState() {
@@ -104,282 +153,307 @@ function checkLoginState() {
         const user = JSON.parse(userSession);
         const isOwner = isAdmin(user.email);
         
-        let headerAvatar = user.profilePic 
-            ? `<img src="${user.profilePic}" class="profile-pic">`
-            : `<div style="width:35px;height:35px;border-radius:50%;background:white;color:#205081;display:flex;align-items:center;justify-content:center;font-weight:bold;">${user.username.charAt(0).toUpperCase()}</div>`;
+        let headerAvatar = `<div style="width:35px; height:35px; border-radius:50%; background:white; color:#205081; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px;">${user.username.charAt(0).toUpperCase()}</div>`;
+        if (user.profilePic) headerAvatar = `<img src="${user.profilePic}" class="profile-pic">`;
 
-        headerAuthArea.innerHTML = `
-            <div class="header-user-area" onclick="switchMainTab('profile')">
-                <span class="user-name-header">${user.username}</span>
-                ${headerAvatar}
-            </div>
-        `;
+        headerAuthArea.innerHTML = `<div class="header-user-area" onclick="switchMainTab('profile')"><span class="user-name-header">${user.username}</span>${headerAvatar}</div>`;
         renderAuthPages(true, user, isOwner);
-        document.getElementById('nav-admin').style.display = isOwner ? 'flex' : 'none';
-        document.getElementById('nav-transaksi').style.display = isOwner ? 'none' : 'flex';
+        toggleAdminNav(isOwner);
     } else {
-        headerAuthArea.innerHTML = `<button class="btn-login-header" onclick="openAuthModal('login')"><i class="fas fa-user-circle"></i> Masuk</button>`;
+        headerAuthArea.innerHTML = `<button class="btn-login-header" onclick="openAuthModal('login')"><i class="fas fa-user-circle"></i> Masuk / Daftar</button>`;
         renderAuthPages(false, null, false);
-        document.getElementById('nav-admin').style.display = 'none';
+        toggleAdminNav(false);
     }
 }
 
-/* ============================================== */
-/* --- SETTINGS PAGE RENDER LOGIC (CORE) --- */
-/* ============================================== */
+function toggleAdminNav(isOwner) {
+    const navTrans = document.getElementById('nav-transaksi');
+    const navAdmin = document.getElementById('nav-admin');
+    if (isOwner) {
+        if(navTrans) navTrans.style.display = 'none';
+        if(navAdmin) navAdmin.style.display = 'flex';
+    } else {
+        if(navTrans) navTrans.style.display = 'flex';
+        if(navAdmin) navAdmin.style.display = 'none';
+    }
+}
 
 function renderAuthPages(isLoggedIn, user, isOwner) {
+    const profileContent = document.getElementById('profile-content');
     const settingsContent = document.getElementById('pengaturan-content');
-    
+    const navProfileImg = document.querySelector('.floating-circle');
+    const loginPromptHTML = `
+        <div class="auth-required-state">
+            <i class="fas fa-lock lock-icon"></i><p>Silakan Login untuk mengakses halaman ini.</p>
+            <button class="btn-center-login" onclick="openAuthModal('login')"><i class="fas fa-sign-in-alt"></i> LOGIN / DAFTAR</button>
+        </div>`;
+
     if (!isLoggedIn) {
-        settingsContent.innerHTML = `<div class="auth-required-state"><p>Silakan Login dulu.</p></div>`;
-        return;
-    }
-
-    // --- LOGIKA STATUS VERIFIKASI ---
-    const vStatus = user.verificationStatus || 'unverified'; // unverified, pending, verified, rejected
-    
-    let statusBoxHTML = '';
-    let isLocked = false;
-    let bottomVerifyArea = '';
-
-    if (vStatus === 'verified') {
-        // HIJAU: Terverifikasi
-        statusBoxHTML = `<div class="status-box status-green">TERVERIFIKASI <i class="fas fa-check-circle"></i></div>`;
-        isLocked = true; // Kunci input permanen
-        // Area bawah password: Teks saja
-        bottomVerifyArea = `<span class="verify-status-text done">Akun Terverifikasi</span>`;
-    } else if (vStatus === 'pending') {
-        // ORANYE: Proses
-        statusBoxHTML = `<div class="status-box status-orange">PROSES VERIFIKASI <i class="fas fa-clock"></i></div>`;
-        isLocked = true; // Kunci input saat menunggu
-        // Area bawah password: Teks Proses
-        bottomVerifyArea = `<span class="verify-status-text process">Proses Verifikasi</span>`;
-    } else if (vStatus === 'rejected') {
-         // MERAH: Ditolak (Bisa coba lagi)
-        statusBoxHTML = `<div class="status-box status-red">DITOLAK VERIFIKASI <i class="fas fa-times-circle"></i></div>`;
-        isLocked = false; 
-        bottomVerifyArea = `
-            <button class="btn-verify-trigger" onclick="openVerificationModal()">Coba Verifikasi Lagi</button>
-            <span class="verify-status-text">Ditolak</span>
-        `;
+        if(profileContent) profileContent.innerHTML = loginPromptHTML;
+        if(settingsContent) settingsContent.innerHTML = loginPromptHTML;
+        if(navProfileImg) navProfileImg.innerHTML = `<img src="https://api.deline.web.id/76NssFHmcI.png">`;
     } else {
-        // MERAH: Belum Verifikasi
-        statusBoxHTML = `<div class="status-box status-red">BELUM TERVERIFIKASI <i class="fas fa-exclamation-circle"></i></div>`;
-        isLocked = false; 
-        bottomVerifyArea = `
-            <button class="btn-verify-trigger" onclick="openVerificationModal()">Verifikasi</button>
-            <span class="verify-status-text">Belum Verifikasi</span>
-        `;
+        const userInitial = user.username.charAt(0).toUpperCase();
+
+        if(navProfileImg) {
+            navProfileImg.innerHTML = user.profilePic 
+                ? `<img src="${user.profilePic}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
+                : `<div style="width:100%; height:100%; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#205081; font-weight:bold; font-size:20px; border:2px solid #eee;">${userInitial}</div>`;
+        }
+
+        // --- PROFILE PAGE ---
+        if(profileContent) {
+            const avatarDisplay = user.profilePic ? `<img src="${user.profilePic}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` : userInitial;
+            profileContent.innerHTML = `
+                <div class="profile-view-header">
+                    <div class="profile-view-avatar">${avatarDisplay}</div>
+                    <div style="color:white; margin-top:10px; font-weight:bold;">${user.username}</div>
+                    <div style="color:#dbeafe; font-size:12px; margin-top:2px;">Bergabung: ${formatDate(user.createdAt)}</div>
+                </div>
+                <div class="profile-details-card">
+                    <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value">${user.username}</span></div>
+                    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${user.email}</span></div>
+                    <div class="detail-row"><span class="detail-label">Level</span><span class="level-badge" style="background:#205081; color:white;">BASIC</span></div>
+                </div>`;
+        }
+
+        // --- PENGATURAN PAGE (MODIFIED FOR VERIFICATION) ---
+        if(settingsContent) {
+            const avatarDisplay = user.profilePic 
+                ? `<img src="${user.profilePic}" class="avatar-circle-display" style="border:none;">`
+                : `<div class="avatar-circle-display">${userInitial}</div>`;
+
+            // Logika Status Verifikasi
+            const status = user.verificationStatus || 'unverified'; // unverified, pending, verified, rejected
+            let badgeHtml = '';
+            let isLocked = false;
+            let verifyButtonHtml = '';
+            let statusText = 'Belum Verifikasi';
+
+            if (status === 'verified') {
+                badgeHtml = `<div class="status-badge green">Terverifikasi</div>`;
+                isLocked = true;
+                statusText = ''; // Hilang jika sudah verif
+            } else if (status === 'pending') {
+                badgeHtml = `<div class="status-badge yellow">Proses Verifikasi</div>`;
+                isLocked = true; 
+                statusText = 'Proses Verifikasi';
+            } else if (status === 'rejected') {
+                badgeHtml = `<div class="status-badge red">Verifikasi Ditolak</div>`;
+                isLocked = false;
+                statusText = 'Ditolak (Coba Lagi)';
+                verifyButtonHtml = `<button class="btn-verify-mini" onclick="openVerificationModal()">Verifikasi</button>`;
+            } else {
+                // Unverified
+                badgeHtml = `<div class="status-badge red">Belum Terverifikasi</div>`;
+                isLocked = false;
+                verifyButtonHtml = `<button class="btn-verify-mini" onclick="openVerificationModal()">Verifikasi</button>`;
+            }
+
+            const inputClass = isLocked ? 'form-input-styled permanent' : 'form-input-styled';
+            const readOnlyAttr = isLocked ? 'readonly' : '';
+
+            // Area Verifikasi di bawah Password
+            let verificationActionArea = '';
+            if (status !== 'verified') {
+                verificationActionArea = `
+                    <div class="verification-action-row">
+                        ${verifyButtonHtml}
+                        <span class="verify-status-text">${statusText}</span>
+                    </div>
+                `;
+            }
+
+            settingsContent.innerHTML = `
+                <div class="settings-page-wrapper">
+                    <div>
+                        <div class="profile-header-container">
+                            <div class="avatar-wrapper">
+                                ${avatarDisplay}
+                                <div class="camera-badge" onclick="triggerFileUpload()"><i class="fas fa-camera"></i></div>
+                            </div>
+                            <div style="font-size:12px; color:#666; margin-top:10px;">Terdaftar: <b>${formatDate(user.createdAt)}</b></div>
+                            ${badgeHtml} </div>
+
+                        <div class="form-container" style="padding: 0 10px;">
+                            <div class="form-group-styled">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="${inputClass}" value="${user.username}" ${readOnlyAttr} readonly> 
+                                </div>
+                            <div class="form-group-styled">
+                                <label class="form-label">Email</label>
+                                <input type="text" class="${inputClass}" value="${user.email}" ${readOnlyAttr} readonly>
+                            </div>
+                            <div class="form-group-styled">
+                                <label class="form-label">Nomor WhatsApp</label>
+                                <input type="text" class="${inputClass}" value="${user.phone}" ${readOnlyAttr} readonly>
+                            </div>
+
+                            <div class="form-group-styled">
+                                <label class="form-label">Password</label>
+                                <div class="form-input-styled clickable" onclick="openChangePassModal()"><span>••••••••</span><i class="fas fa-pen" style="color:#205081; font-size:12px;"></i></div>
+                                ${verificationActionArea}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="logout-area" style="padding: 0 10px;">
+                        <button class="btn-logout-bottom" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> KELUAR AKUN</button>
+                    </div>
+                </div>`;
+        }
     }
+}
 
-    const inputClass = isLocked ? 'form-input-styled permanent' : 'form-input-styled';
-    const readOnlyAttr = isLocked ? 'readonly' : '';
-    
-    const avatarDisplay = user.profilePic 
-        ? `<img src="${user.profilePic}" class="avatar-circle-display" style="border:none;">`
-        : `<div class="avatar-circle-display">${user.username.charAt(0).toUpperCase()}</div>`;
-
-    settingsContent.innerHTML = `
-        <div class="settings-page-wrapper">
-            <div>
-                <div class="profile-header-container">
-                    <div class="avatar-wrapper">
-                        ${avatarDisplay}
-                        <div class="camera-badge" onclick="triggerFileUpload()"><i class="fas fa-camera"></i></div>
-                    </div>
-                    <div style="font-size:12px; color:#666; margin-top:10px;">
-                        Terdaftar: <b>${formatDate(user.createdAt)}</b>
-                    </div>
-                </div>
-
-                <!-- KOTAK STATUS HIJAU/MERAH -->
-                <div style="padding: 0 10px;">${statusBoxHTML}</div>
-
-                <div class="form-container" style="padding: 0 10px;">
-                    <div class="form-group-styled">
-                        <label class="form-label">Username</label>
-                        <input type="text" class="${inputClass}" value="${user.username}" ${readOnlyAttr}>
-                    </div>
-
-                    <div class="form-group-styled">
-                        <label class="form-label">Email</label>
-                        <input type="text" class="${inputClass}" value="${user.email}" ${readOnlyAttr}>
-                    </div>
-
-                    <div class="form-group-styled">
-                        <label class="form-label">Nomor WhatsApp</label>
-                        <input type="text" class="${inputClass}" value="${user.phone}" ${readOnlyAttr}>
-                    </div>
-
-                    <div class="form-group-styled">
-                        <label class="form-label">Password</label>
-                        <input type="text" class="${inputClass}" value="${user.password}" ${readOnlyAttr}>
-                    </div>
-
-                    <!-- AREA TOMBOL VERIFIKASI -->
-                    <div class="verification-row">
-                        ${bottomVerifyArea}
-                    </div>
-                </div>
-            </div>
-
-            <div class="logout-area" style="padding: 0 10px;">
-                <button class="btn-logout-bottom" onclick="logoutUser()">
-                    <i class="fas fa-sign-out-alt"></i> KELUAR AKUN
-                </button>
-            </div>
-        </div>
-    `;
+function logoutUser() {
+    localStorage.removeItem('user');
+    checkLoginState(); 
+    switchMainTab('home'); 
 }
 
 /* ============================================== */
-/* --- VERIFICATION FLOW LOGIC --- */
+/* --- USER VERIFICATION FLOW --- */
 /* ============================================== */
 
-// 1. Buka Modal Isi Data
 function openVerificationModal() {
     const user = JSON.parse(localStorage.getItem('user'));
-    document.getElementById('authOverlay').classList.add('active');
-    document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
-    document.getElementById('verificationRequestModal').style.display = 'block';
+    if(!user) return;
 
-    // Pre-fill data user saat ini
-    document.getElementById('verifUser').value = user.username;
+    authOverlay.classList.add('active');
+    document.querySelectorAll('.auth-box').forEach(b => b.style.display='none');
+    boxVerification.style.display = 'block';
+
+    // Step 1: Input
+    document.getElementById('verifStep1').style.display = 'block';
+    document.getElementById('verifStep2').style.display = 'none';
+
+    // Isi Data Saat Ini
+    document.getElementById('verifUsername').value = user.username;
     document.getElementById('verifEmail').value = user.email;
     document.getElementById('verifPhone').value = user.phone;
 }
 
-// 2. Submit Data Verifikasi -> Request OTP
-async function handleVerificationSubmit(e) {
+// Handler Tombol Konfirmasi (Kirim OTP)
+async function handleVerificationConfirm(e) {
     e.preventDefault();
     const user = JSON.parse(localStorage.getItem('user'));
-    const btn = document.getElementById('btnVerifRequest');
-    
-    const username = document.getElementById('verifUser').value;
-    const email = document.getElementById('verifEmail').value;
-    const phone = document.getElementById('verifPhone').value;
+    const newUsername = document.getElementById('verifUsername').value;
+    const newEmail = document.getElementById('verifEmail').value;
+    const newPhone = document.getElementById('verifPhone').value;
+    const btn = document.getElementById('btnVerifConfirm');
+
+    if(!newUsername || !newEmail || !newPhone) return alert("Semua data wajib diisi!");
 
     btn.innerText = "Mengirim Kode..."; btn.disabled = true;
 
     try {
-        // Kirim request OTP tipe verification
+        // Request OTP ke Email Baru (atau lama jika sama)
         const res = await fetch(`${API_URL}/request-otp`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                userId: user._id,
-                email: email, 
-                username: username,
-                phone: phone,
-                password: user.password, // Pass current password for re-saving logic
-                type: 'verification'
+            body: JSON.stringify({ 
+                email: newEmail, 
+                username: newUsername, 
+                phone: newPhone,
+                type: 'verification_update' 
             })
         });
         const data = await res.json();
         
-        if (data.success) {
-            tempVerificationEmail = email; // Simpan email target OTP
-            document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
-            document.getElementById('verificationOtpModal').style.display = 'block';
-            document.getElementById('verifOtpEmailText').innerText = `Kode dikirim ke: ${email}`;
+        if(data.success) {
+            // Pindah ke Step 2 (OTP)
+            document.getElementById('verifStep1').style.display = 'none';
+            document.getElementById('verifStep2').style.display = 'block';
         } else {
-            alert(data.message);
+            alert(data.message || "Gagal mengirim kode.");
         }
-    } catch (e) { alert("Gagal koneksi server."); }
-    finally { btn.innerText = "KONFIRMASI DATA"; btn.disabled = false; }
+    } catch(e) { alert("Error Server"); }
+    finally { btn.innerText = "KONFIRMASI"; btn.disabled = false; }
 }
 
-// 3. Submit OTP Verifikasi
-async function handleVerificationOtpSubmit() {
-    const otp = document.getElementById('verifOtpInput').value;
-    const btn = document.getElementById('btnVerifFinal');
+// Handler Submit OTP & Finalisasi
+async function handleVerificationSubmitOtp() {
     const user = JSON.parse(localStorage.getItem('user'));
+    const otp = document.getElementById('verifOtpCode').value;
+    
+    const newUsername = document.getElementById('verifUsername').value;
+    const newEmail = document.getElementById('verifEmail').value;
+    const newPhone = document.getElementById('verifPhone').value;
+    const btn = document.getElementById('btnVerifSubmit');
 
-    if(otp.length < 6) return alert("Masukkan kode 6 digit");
+    if(!otp) return alert("Masukkan kode OTP!");
     btn.innerText = "Memproses..."; btn.disabled = true;
 
     try {
-        const res = await fetch(`${API_URL}/verification-confirm`, {
+        const res = await fetch(`${API_URL}/submit-verification`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                userId: user._id,
-                otp: otp,
-                email: tempVerificationEmail
+                originalEmail: user.email,
+                newUsername, newEmail, newPhone, otp
             })
         });
         const data = await res.json();
 
-        if (data.success) {
-            // Update local storage dengan data baru & status pending
-            localStorage.setItem('user', JSON.stringify(data.user));
-            alert("Permintaan dikirim! Status kini: Proses Verifikasi.");
+        if(data.success) {
+            alert("Permintaan Verifikasi Terkirim! Menunggu persetujuan Admin.");
+            localStorage.setItem('user', JSON.stringify(data.user)); // Update session lokal
             closeAuthModal();
-            checkLoginState(); // Re-render Settings UI
+            checkLoginState(); // Refresh tampilan settings
         } else {
-            alert(data.message);
+            alert(data.message || "Gagal verifikasi.");
         }
-    } catch (e) { alert("Error Server"); }
-    finally { btn.innerText = "VERIFIKASI SEKARANG"; btn.disabled = false; }
+    } catch(e) { alert("Error koneksi."); }
+    finally { btn.innerText = "KIRIM & VERIFIKASI"; btn.disabled = false; }
 }
 
+
 /* ============================================== */
-/* --- ADMIN DASHBOARD LOGIC (ACCORDION) --- */
+/* --- ADMIN DASHBOARD (ACCORDION STYLE) --- */
 /* ============================================== */
 
-async function loadAdminTab(tab, element) {
-    if(element) {
-        document.querySelectorAll('.admin-menu-item').forEach(el => el.classList.remove('active'));
-        element.classList.add('active');
-    }
+function loadAdminTab(tab, element) {
+    document.querySelectorAll('.admin-menu-item').forEach(el => el.classList.remove('active'));
+    if(element) element.classList.add('active');
 
     const container = document.getElementById('admin-content-area');
     container.innerHTML = `<div style="text-align:center; padding:50px;"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>`;
 
-    if (tab === 'users') {
-        const res = await fetch(`${API_URL}/admin/users`);
-        const data = await res.json();
-        renderAdminUserAccordion(data.users || []);
-    } else if (tab === 'verif') {
-        const res = await fetch(`${API_URL}/admin/verifications`);
-        const data = await res.json();
-        renderAdminVerificationList(data.users || []);
-    } else {
-        container.innerHTML = `<p style="text-align:center; margin-top:20px;">Fitur belum tersedia.</p>`;
-    }
+    if (tab === 'users') fetchAdminUsers();
+    else if (tab === 'verif') fetchAdminVerifications();
+    else container.innerHTML = `<div class="empty-state-placeholder"><p>Menu ${tab} kosong.</p></div>`;
 }
 
-// Render Users as Accordion (Slide Down)
-function renderAdminUserAccordion(users) {
+// 1. ADMIN USERS (Accordion)
+async function fetchAdminUsers() {
+    try {
+        const res = await fetch(`${API_URL}/admin/users`);
+        const data = await res.json();
+        renderAdminUserList(data.users);
+    } catch (e) { document.getElementById('admin-content-area').innerText = "Error."; }
+}
+
+function renderAdminUserList(users) {
     const container = document.getElementById('admin-content-area');
-    if (users.length === 0) {
-        container.innerHTML = `<p style="text-align:center; padding:20px;">User kosong.</p>`;
-        return;
-    }
+    if(!users || users.length === 0) { container.innerHTML = "<p>User kosong.</p>"; return; }
 
-    let html = `<div style="padding:15px;">`;
+    let html = `<div class="admin-list-container">`;
     users.forEach(u => {
-        const statusColor = u.verificationStatus === 'verified' ? 'green' : (u.verificationStatus === 'pending' ? 'orange' : 'red');
-        const statusIcon = u.verificationStatus === 'verified' ? 'check-circle' : 'times-circle';
-
+        const uniqueId = `user_detail_${u._id}`;
         html += `
-            <div class="user-accordion-item" onclick="toggleAccordion(this)">
-                <div class="accordion-header">
-                    <span>${u.username} <i class="fas fa-${statusIcon}" style="color:${statusColor}; font-size:10px; margin-left:5px;"></i></span>
-                    <i class="fas fa-chevron-down"></i>
+            <div class="admin-acc-item">
+                <div class="admin-acc-header" onclick="toggleAccordion('${uniqueId}')">
+                    <span class="acc-title"><i class="fas fa-user"></i> ${u.username}</span>
+                    <i class="fas fa-chevron-down acc-icon"></i>
                 </div>
-                <div class="accordion-content">
-                    <div class="acc-details">
-                        <div class="acc-row"><span class="acc-label">Email</span><span class="acc-val">${u.email}</span></div>
-                        <div class="acc-row"><span class="acc-label">No WA</span><span class="acc-val">${u.phone}</span></div>
-                        <div class="acc-row"><span class="acc-label">Password</span><span class="acc-val" style="color:#e74c3c;">${u.password}</span></div>
-                        <div class="acc-row"><span class="acc-label">Status</span><span class="acc-val" style="color:${statusColor};">${u.verificationStatus.toUpperCase()}</span></div>
-                        
-                        <div class="admin-card-actions">
-                            <button class="btn-admin-action btn-edit-user" onclick='event.stopPropagation(); openAdminEditModal(${JSON.stringify(u)})'>Edit</button>
-                            <button class="btn-admin-action btn-del-user" onclick="event.stopPropagation(); deleteUser('${u._id}', '${u.username}')">Hapus</button>
-                        </div>
+                <div id="${uniqueId}" class="admin-acc-body" style="display:none;">
+                    <div class="acc-row"><span>Email:</span> <b>${u.email}</b></div>
+                    <div class="acc-row"><span>No HP:</span> <b>${u.phone}</b></div>
+                    <div class="acc-row"><span>Pass:</span> <b style="color:#e74c3c;">${u.password}</b></div>
+                    <div class="acc-row"><span>Status:</span> <b>${u.verificationStatus || 'unverified'}</b></div>
+                    
+                    <div class="acc-actions">
+                         <button class="btn-acc-action edit" onclick='openAdminEditModal(${JSON.stringify(u)})'>Edit</button>
+                         <button class="btn-acc-action delete" onclick="deleteUser('${u._id}', '${u.username}')">Hapus</button>
                     </div>
                 </div>
             </div>
@@ -389,33 +463,39 @@ function renderAdminUserAccordion(users) {
     container.innerHTML = html;
 }
 
-function toggleAccordion(element) {
-    element.classList.toggle('active');
+// 2. ADMIN VERIFIKASI (Accordion + Terima/Tolak)
+async function fetchAdminVerifications() {
+    try {
+        const res = await fetch(`${API_URL}/admin/verifications`); // Get pending only
+        const data = await res.json();
+        renderAdminVerifList(data.users);
+    } catch (e) { document.getElementById('admin-content-area').innerText = "Error."; }
 }
 
-// Render Verification Requests
-function renderAdminVerificationList(users) {
+function renderAdminVerifList(users) {
     const container = document.getElementById('admin-content-area');
-    if (users.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state-placeholder">
-                <i class="fas fa-check-double" style="font-size: 40px; margin-bottom: 15px; color:#ccc;"></i>
-                <p>Tidak ada permintaan verifikasi.</p>
-            </div>`;
-        return;
+    if(!users || users.length === 0) { 
+        container.innerHTML = `<div class="empty-state-placeholder"><i class="fas fa-check-double"></i><p>Tidak ada permintaan verifikasi.</p></div>`; 
+        return; 
     }
 
-    let html = `<div style="padding:15px;">`;
+    let html = `<div class="admin-list-container">`;
     users.forEach(u => {
+        const uniqueId = `verif_detail_${u._id}`;
         html += `
-            <div class="verif-card">
-                <div style="font-weight:bold; font-size:14px; margin-bottom:5px;">${u.username}</div>
-                <div style="font-size:12px; color:#666; margin-bottom:2px;">${u.email}</div>
-                <div style="font-size:12px; color:#666;">${u.phone}</div>
-                
-                <div class="verif-actions">
-                    <button class="btn-accept" onclick="processVerification('${u._id}', 'approve')">TERIMA</button>
-                    <button class="btn-reject" onclick="processVerification('${u._id}', 'reject')">TOLAK</button>
+            <div class="admin-acc-item warning-border">
+                <div class="admin-acc-header" onclick="toggleAccordion('${uniqueId}')">
+                    <span class="acc-title"><i class="fas fa-clock"></i> ${u.username}</span>
+                    <i class="fas fa-chevron-down acc-icon"></i>
+                </div>
+                <div id="${uniqueId}" class="admin-acc-body" style="display:none;">
+                    <div class="acc-row"><span>Email:</span> <b>${u.email}</b></div>
+                    <div class="acc-row"><span>No HP:</span> <b>${u.phone}</b></div>
+                    
+                    <div class="acc-actions">
+                         <button class="btn-acc-action approve" onclick="adminVerifyAction('${u._id}', 'approve')">Terima</button>
+                         <button class="btn-acc-action reject" onclick="adminVerifyAction('${u._id}', 'reject')">Tolak</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -424,135 +504,193 @@ function renderAdminVerificationList(users) {
     container.innerHTML = html;
 }
 
-async function processVerification(userId, action) {
-    if(!confirm(`Yakin ingin ${action === 'approve' ? 'Menerima' : 'Menolak'} user ini?`)) return;
+function toggleAccordion(id) {
+    const el = document.getElementById(id);
+    if(el.style.display === 'none') el.style.display = 'block';
+    else el.style.display = 'none';
+}
 
+async function adminVerifyAction(userId, action) {
+    if(!confirm(`Yakin ingin ${action === 'approve' ? 'Menerima' : 'Menolak'} verifikasi ini?`)) return;
+    
     try {
-        const res = await fetch(`${API_URL}/admin/verification-action`, {
+        const res = await fetch(`${API_URL}/admin/verify-action`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ userId, action })
         });
         const data = await res.json();
-        
-        if (data.success) {
+        if(data.success) {
             alert(data.message);
-            loadAdminTab('verif'); // Refresh
-        } else {
-            alert(data.message);
-        }
+            fetchAdminVerifications(); // Refresh list
+        } else alert("Gagal.");
     } catch(e) { alert("Error Server"); }
 }
 
+// 3. Delete & Edit User (Standard)
+async function deleteUser(id, name) {
+    if(!confirm(`Hapus ${name}?`)) return;
+    try {
+        const res = await fetch(`${API_URL}/admin/users/${id}`, { method: 'DELETE' });
+        if(await res.json().success) fetchAdminUsers();
+    } catch(e){}
+}
+
+function openAdminEditModal(user) {
+    authOverlay.classList.add('active');
+    document.querySelectorAll('.auth-box').forEach(b => b.style.display='none');
+    boxAdminEdit.style.display='block';
+    document.getElementById('editUserId').value = user._id;
+    document.getElementById('editUserUsername').value = user.username;
+    document.getElementById('editUserEmail').value = user.email;
+    document.getElementById('editUserPhone').value = user.phone;
+    document.getElementById('editUserPass').value = user.password;
+}
+
+function closeAdminEditModal() { authOverlay.classList.remove('active'); }
+
+async function handleAdminUpdateUser(e) {
+    e.preventDefault();
+    const id = document.getElementById('editUserId').value;
+    const payload = {
+        username: document.getElementById('editUserUsername').value,
+        email: document.getElementById('editUserEmail').value,
+        phone: document.getElementById('editUserPhone').value,
+        password: document.getElementById('editUserPass').value
+    };
+    try {
+        await fetch(`${API_URL}/admin/users/${id}`, {
+            method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+        });
+        closeAdminEditModal();
+        fetchAdminUsers();
+    } catch(e) { alert("Error"); }
+}
+
 /* ============================================== */
-/* --- AUTH MODAL (LOGIN/REGISTER) --- */
+/* --- AUTH & CROPPER UTILS (EXISTING) --- */
 /* ============================================== */
+function setupFileUploadListener() {
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('imageToCrop').src = event.target.result;
+                    openCropModal();
+                };
+                reader.readAsDataURL(file);
+            }
+            e.target.value = '';
+        });
+    }
+}
+function triggerFileUpload() { document.getElementById('fileInput').click(); }
+function openCropModal() {
+    document.getElementById('cropModal').style.display = 'flex';
+    if(cropper) cropper.destroy();
+    cropper = new Cropper(document.getElementById('imageToCrop'), { aspectRatio: 1, viewMode: 1 });
+}
+function closeCropModal() { document.getElementById('cropModal').style.display = 'none'; if(cropper) cropper.destroy(); }
+function saveCropImage() {
+    if(!cropper) return;
+    const base64Image = cropper.getCroppedCanvas({ width: 300, height: 300 }).toDataURL('image/jpeg', 0.85);
+    updateProfilePicOnServer(base64Image);
+}
+async function updateProfilePicOnServer(base64Image) {
+    const user = JSON.parse(localStorage.getItem('user'));
+    try {
+        const res = await fetch(`${API_URL}/update-pic`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: user.email, imageBase64: base64Image })
+        });
+        if((await res.json()).success) {
+            user.profilePic = base64Image;
+            localStorage.setItem('user', JSON.stringify(user));
+            closeCropModal(); checkLoginState();
+        }
+    } catch (e) {}
+}
 
 function openAuthModal(type) {
     authOverlay.classList.add('active');
-    document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
-    if(type === 'login') boxLogin.style.display = 'block';
-    if(type === 'register') boxReg.style.display = 'block';
+    document.body.classList.add('lock-scroll');
+    switchAuth(type);
 }
-
 function closeAuthModal() {
     authOverlay.classList.remove('active');
+    document.body.classList.remove('lock-scroll');
 }
-
 function switchAuth(type) {
     document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
     if(type === 'login') boxLogin.style.display = 'block';
-    if(type === 'register') boxReg.style.display = 'block';
+    if(type === 'register') { boxReg.style.display = 'block'; authMode = 'register'; }
+    if(type === 'otp') boxOtp.style.display = 'block';
+    if(type === 'forgot') if(boxForgot) boxForgot.style.display = 'block';
 }
-
 function togglePass(id, icon) {
     const input = document.getElementById(id);
-    if(input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash');
-    }
+    input.type = input.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
 }
 
-async function handleLogin(e) {
-    e.preventDefault();
-    const loginInput = document.getElementById('loginInput').value;
-    const password = document.getElementById('loginPass').value;
-    const btn = document.getElementById('btnLoginBtn');
-
-    btn.innerText = "Loading..."; btn.disabled = true;
-
-    try {
-        const res = await fetch(`${API_URL}/login`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ loginInput, password })
-        });
-        const data = await res.json();
-        if (data.success) {
-            closeAuthModal();
-            localStorage.setItem('user', JSON.stringify(data.userData));
-            
-            if (isAdmin(data.userData.email) || data.userData.role === 'Admin') {
-                switchMainTab('admin'); 
-            } else {
-                switchMainTab('home');
-            }
-            checkLoginState(); 
-        } else {
-            alert(data.message || "Login Gagal");
-        }
-    } catch (err) { alert("Error Server."); }
-    finally { btn.innerText = "LOGIN"; btn.disabled = false; }
-}
-
+// Register & Login Handlers (Simplified for brevity, same logic as before)
 async function handleRegisterRequest(e) {
     e.preventDefault();
     const username = document.getElementById('regUser').value;
     const email = document.getElementById('regEmail').value;
     const phone = document.getElementById('regPhone').value;
     const password = document.getElementById('regPass').value;
-    const btn = document.getElementById('btnRegBtn');
-
+    const confirm = document.getElementById('regConfirmPass').value;
+    if(password !== confirm) return alert("Password beda!");
     tempRegisterData = { username, email, phone, password };
-    btn.innerText = "Processing..."; btn.disabled = true;
-
     try {
         const res = await fetch(`${API_URL}/request-otp`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, username, phone, type: 'register' })
         });
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('otpTextEmail').innerText = `Kode OTP ke: ${email}`;
-            document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
-            document.getElementById('otpBox').style.display = 'block';
-        } else { alert(data.message); }
-    } catch (err) { alert("Error Server"); } 
-    finally { btn.innerText = "DAFTAR"; btn.disabled = false; }
+        if((await res.json()).success) switchAuth('otp');
+        else alert("Gagal kirim OTP");
+    } catch(e){}
 }
-
+function setupOtpInputs() {
+    document.querySelectorAll('.otp-field').forEach((input, index, inputs) => {
+        input.addEventListener('input', (e) => {
+            if(e.target.value !== "" && index < inputs.length - 1) inputs[index+1].focus();
+        });
+    });
+}
 async function handleVerifyOtp() {
-    const otp = document.querySelector('.otp-field').value;
-    // (Logika verifikasi register tetap sama, panggil API /register-verify)
+    let otp = ""; document.querySelectorAll('.otp-field').forEach(f => otp += f.value);
     try {
         const res = await fetch(`${API_URL}/register-verify`, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ otp: otp, email: tempRegisterData.email })
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({...tempRegisterData, otp})
+        });
+        if((await res.json()).success) { alert("Daftar Sukses"); switchAuth('login'); }
+        else alert("OTP Salah");
+    } catch(e){}
+}
+async function handleLogin(e) {
+    e.preventDefault();
+    const loginInput = document.getElementById('loginInput').value;
+    const password = document.getElementById('loginPass').value;
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({loginInput, password})
         });
         const data = await res.json();
-        if(data.success) { alert("Berhasil!"); switchAuth('login'); }
-        else { alert("OTP Salah"); }
-    } catch(e) {}
+        if(data.success) {
+            closeAuthModal();
+            localStorage.setItem('user', JSON.stringify(data.userData));
+            checkLoginState();
+            switchMainTab(isAdmin(data.userData.email) ? 'admin' : 'home');
+        } else alert("Login Gagal");
+    } catch(e){}
 }
-
-function setupOtpInputs() {
-    // Basic OTP input helper
-}
-
-function logoutUser() {
-    localStorage.removeItem('user');
-    checkLoginState();
-    switchMainTab('home');
+function openChangePassModal() {
+    closeAuthModal(); authOverlay.classList.add('active'); boxChangePass.style.display='block';
 }
