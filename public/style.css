@@ -1,8 +1,6 @@
 /* ========================================= */
-/* --- KODE ASLI (TIDAK ADA YANG DIHAPUS) --- */
+/* --- 1. RESET & BASE (Sama seperti Asli) --- */
 /* ========================================= */
-
-/* --- RESET & BASE --- */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
 body { background-color: #fff; padding-bottom: 90px !important; transition: background-color 0.3s; }
 body.lock-scroll { overflow: hidden !important; height: 100vh; }
@@ -14,11 +12,11 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .container { width: 100%; max-width: 100%; margin: 0; background: #fff; min-height: 100vh; overflow-x: hidden; position: relative; }
 
 /* Logo & Bars */
-.logo .fa-bars {
-    margin-right: 15px; 
-}
+.logo .fa-bars { margin-right: 15px; }
 
-/* --- HEADER --- */
+/* ========================================= */
+/* --- 2. HEADER & NAVIGATION --- */
+/* ========================================= */
 .header { background-color: #205081; padding: 15px; color: white; position: relative; z-index: 100; }
 .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .logo { font-size: 20px; font-weight: bold; display: flex; align-items: center; }
@@ -45,13 +43,17 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
     position: fixed; top: 0; left: 0; width: 100%; height: 0; background: #fff; z-index: 90;
     overflow-y: auto; transition: height 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); opacity: 0; visibility: hidden;
 }
-.search-overlay.active { opacity: 1; visibility: visible; padding-bottom: 100px; }
+.search-overlay.active { opacity: 1; visibility: visible; padding-bottom: 100px; height: 100%; }
 .search-content-wrapper { padding: 20px; }
 .search-section-title { font-size: 14px; font-weight: bold; color: #205081; display: flex; justify-content: space-between; margin-bottom: 15px; }
 .btn-close-search { color: #e74c3c; cursor: pointer; background: #ffebeb; padding: 5px 10px; border-radius: 15px; font-size: 12px; }
 .history-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 14px; display: flex; align-items: center; gap: 10px; }
 
-/* --- SLIDER --- */
+/* ========================================= */
+/* --- 3. HOME PAGE (DIKEMBALIKAN KE ASAL) --- */
+/* ========================================= */
+
+/* SLIDER */
 .slider-section { background: #fff; padding: 15px; margin-top: 10px; }
 .slider-container { width: 100%; border-radius: 10px; overflow: hidden; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 .slider-wrapper { display: flex; width: 100%; transition: transform 0.5s ease-in-out; }
@@ -63,25 +65,29 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .dot { width: 8px; height: 8px; background: rgba(255,255,255,0.5); border-radius: 50%; }
 .dot.active { background: #fff; width: 20px; border-radius: 10px; }
 
-/* --- CONTENT SECTIONS --- */
+/* INFO BOX */
 .info-box-section { padding: 15px; }
 .info-box { background: #eaeff2; border: 1px solid #d1d5db; border-radius: 12px; padding: 20px; font-size: 14px; color: #333; }
 .info-box ol { padding-left: 20px; margin-top: 10px; }
+
+/* KATEGORI HEADER */
 .beli-cepat-header { display: flex; margin-top: 10px; border-top: 5px solid #f2f3f7; }
 .tab-active { background: #205081; color: white; padding: 10px 30px 10px 20px; font-weight: bold; font-size: 14px; clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%); }
 
-/* --- GRIDS --- */
+/* GRID GAME POPULER */
 .game-grid { background: #205081; padding: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .game-card { background: linear-gradient(135deg, #3a5075, #1e2c45); border-radius: 8px; padding: 10px 5px; text-align: center; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-size: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 .game-icon { width: 40px; height: 40px; border-radius: 10px; margin-bottom: 5px; }
 
+/* KATEGORI UTAMA (YANG SEBELUMNYA HILANG/RUSAK) */
 .category-wrapper-bg { background: #fcfdfe; padding: 15px; padding-bottom: 30px; }
 .category-card { background: #eff6ff; border-radius: 8px; padding: 15px; border: 1px solid #dbeafe; margin-bottom: 15px; }
 .category-header { font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 5px; text-align: center; font-size: 11px; }
 .cat-img { width: 45px; height: 45px; border-radius: 10px; background: white; margin-bottom: 5px; object-fit: cover; }
+.cat-name { color: #333; }
 
-/* --- PAYMENT & FOOTER --- */
+/* PAYMENT SECTION (YANG SEBELUMNYA BERANTAKAN) */
 .payment-section { background: #f8fafc; margin: 15px; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; }
 .payment-header { font-weight: bold; color: #475569; margin-bottom: 10px; font-size: 13px; }
 .payment-icons { display: flex; justify-content: center; gap: 15px; }
@@ -97,27 +103,16 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .floating-circle img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 .center-item span { margin-top: 22px; }
 
-/* --- HALAMAN DETAIL --- */
+/* ========================================= */
+/* --- 4. HALAMAN DETAIL & AUTH STATE --- */
+/* ========================================= */
 .detail-header { background: #205081; padding: 15px; color: white; display: flex; align-items: center; position: sticky; top: 0; z-index: 99; }
 .btn-back { margin-right: 15px; cursor: pointer; }
 .detail-title { font-weight: bold; font-size: 16px; }
 .detail-content { padding: 20px; min-height: 80vh; background: #f9f9f9; text-align: center; }
 .empty-state-placeholder { margin-top: 50px; border: 2px dashed #ddd; padding: 30px; border-radius: 10px; color: #999; }
 
-/* --- KONTEN DINAMIS & SETTINGS (LAMA) --- */
-.dynamic-content { padding: 20px; min-height: 70vh; }
-.settings-group { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
-.settings-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; font-size: 14px; color: #333; }
-.settings-item:last-child { border-bottom: none; }
-.settings-item:hover { background: #f9f9f9; }
-.settings-item i { width: 25px; color: #205081; font-size: 16px; }
-
-/* TOMBOL LOGOUT (STYLE LAMA) */
-.logout-container { margin-top: 30px; padding: 0 10px; }
-.btn-logout { width: 100%; background: #ffebeb; color: #e74c3c; border: 1px solid #e74c3c; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; transition: 0.2s; }
-.btn-logout:hover { background: #e74c3c; color: white; }
-
-/* --- EMPTY STATE & LOGIN BUTTON FIX --- */
+/* AUTH REQUIRED STATE (TAMPILAN LOGIN DI TENGAH) */
 .auth-required-state {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     height: 60vh; text-align: center; color: #666; padding: 20px;
@@ -132,9 +127,8 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
     transition: transform 0.2s, background 0.2s; width: auto; min-width: 160px;
 }
 .btn-center-login:active { transform: scale(0.95); }
-.btn-center-login i { font-size: 16px; }
 
-/* --- AUTHENTICATION MODAL --- */
+/* AUTH MODALS */
 .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
 .auth-overlay.active { display: flex; animation: slideUp 0.3s ease; }
 .auth-box { background: #fff; width: 85%; max-width: 360px; padding: 30px 25px; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; text-align: center; }
@@ -143,857 +137,285 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .auth-subtitle { color: #888; font-size: 13px; margin-bottom: 25px; }
 .icon-circle-top { width: 60px; height: 60px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; color: #205081; font-size: 24px; }
 
-/* Input Styling */
+/* INPUT AUTH */
 .input-with-icon { position: relative; margin-bottom: 15px; }
 .input-with-icon input { width: 100%; padding: 12px 45px 12px 45px; border: 1px solid #e0e0e0; border-radius: 10px; background: #f9fafb; outline: none; font-size: 14px; transition: 0.3s; }
 .input-with-icon input:focus { border-color: #205081; background: #fff; box-shadow: 0 0 0 3px rgba(32,80,129,0.1); }
 .input-icon-left { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #bbb; }
-
-/* Password Toggle Icon */
 .password-toggle { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #bbb; z-index: 10; padding: 5px; }
 
-.otp-container { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
-.otp-field { width: 40px; height: 45px; border: 2px solid #eee; border-radius: 8px; font-size: 18px; font-weight: bold; text-align: center; outline: none; transition: 0.2s; }
-.otp-field:focus { border-color: #205081; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-
 .btn-auth-action { width: 100%; background: linear-gradient(135deg, #205081, #163a63); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; box-shadow: 0 5px 15px rgba(32,80,129,0.2); transition: 0.2s; }
-.btn-auth-action:active { transform: scale(0.98); }
 .forgot-link { color: #205081; font-weight: 600; cursor: pointer; font-size: 13px; }
 .mt-2 { margin-top: 15px; font-size: 13px; color: #666; }
+.otp-field { width: 100%; text-align: center; font-size: 24px; letter-spacing: 5px; padding: 10px; margin: 15px 0; border: 2px solid #ddd; border-radius: 8px; font-weight: bold; }
 
-@keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+/* ========================================= */
+/* --- 5. SETTINGS & PROFILE STYLES --- */
+/* ========================================= */
+.settings-page-wrapper { display: flex; flex-direction: column; min-height: 75vh; justify-content: space-between; }
+.profile-header-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; margin-top: 10px; }
+.avatar-wrapper { position: relative; width: 90px; height: 90px; }
+.avatar-circle-display { width: 100%; height: 100%; background-color: #fff; border: 2px solid #205081; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: #205081; box-shadow: 0 4px 10px rgba(0,0,0,0.1); object-fit: cover; }
+.camera-badge { position: absolute; bottom: 0; right: 0; background: #205081; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 2px solid #fff; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2; }
 
-/* ============================================== */
-/* --- NEW: PROFILE & SETTINGS UI UPDATE --- */
-/* ============================================== */
+.form-group-styled { margin-bottom: 15px; }
+.form-label { font-size: 12px; color: #666; margin-bottom: 5px; display: block; font-weight: bold; }
+.form-input-styled { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 10px; background: #f9f9f9; font-size: 14px; color: #333; outline: none; transition: 0.3s; }
+.form-input-styled.permanent { background: #e9ecef; color: #888; cursor: not-allowed; }
+.btn-logout-bottom { background: #ffebeb; color: #e74c3c; border: 1px solid #e74c3c; padding: 14px; border-radius: 12px; font-weight: bold; text-align: center; cursor: pointer; width: 100%; margin-top: 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
 
-/* Wrapper untuk Halaman Settings agar tombol logout ada di bawah */
-.settings-page-wrapper {
-    display: flex;
-    flex-direction: column;
-    min-height: 75vh; /* Sesuaikan agar pas layar */
-    justify-content: space-between;
-}
-
-/* Header Avatar (Settings) */
-.profile-header-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 25px;
-    margin-top: 10px;
-}
-
-.avatar-wrapper {
-    position: relative;
-    width: 90px;
-    height: 90px;
-}
-
-.avatar-circle-display {
-    width: 100%;
-    height: 100%;
-    background-color: #fff;
-    border: 2px solid #205081;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    font-weight: bold;
-    color: #205081;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    object-fit: cover;
-}
-
-/* Ikon Kamera Kecil */
-.camera-badge {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: #205081;
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    border: 2px solid #fff;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    z-index: 2;
-}
-
-/* Form Styling di Settings */
-.form-group-styled {
-    margin-bottom: 15px;
-}
-
-.form-label {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 5px;
-    display: block;
-    font-weight: bold;
-}
-
-.form-input-styled {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background: #f9f9f9;
-    font-size: 14px;
-    color: #333;
-    outline: none;
-    transition: 0.3s;
-}
-
-/* Input Readonly (Permanen) */
-.form-input-styled.permanent {
-    background: #e9ecef;
-    color: #888;
-    cursor: not-allowed;
-}
-
-/* Input Editable Focus */
-.form-input-styled:not(.permanent):focus {
-    border-color: #205081;
-    background: #fff;
-}
-
-/* Input Password Clickable */
-.form-input-styled.clickable {
-    cursor: pointer;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-/* Tombol Logout Spesifik (Posisi Bawah) */
-.btn-logout-bottom {
-    background: #ffebeb;
-    color: #e74c3c;
-    border: 1px solid #e74c3c;
-    padding: 14px;
-    border-radius: 12px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 20px;
-    margin-bottom: 20px; /* Jarak dari navbar bawah */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: 0.2s;
-}
-.btn-logout-bottom:hover {
-    background: #e74c3c;
-    color: white;
-}
-
-/* --- PROFILE PAGE (VIEW ONLY) STYLES --- */
-.profile-view-header {
-    background: #205081;
-    padding: 30px 20px 50px 20px; /* Padding bawah besar untuk overlap card */
-    text-align: center;
-    border-radius: 0 0 20px 20px;
-    margin: -15px -15px 0 -15px; /* Negatif margin untuk full width di dalam container padding */
-}
-
-.profile-view-avatar {
-    width: 80px;
-    height: 80px;
-    background: #fff;
-    border-radius: 50%;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    font-weight: bold;
-    color: #205081;
-    border: 4px solid rgba(255,255,255,0.3);
-}
-
-.profile-details-card {
-    background: white;
-    margin: -35px 20px 20px 20px; /* Naik ke atas menutupi header biru */
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    position: relative;
-    z-index: 5;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 14px;
-}
-.detail-row:last-child { border-bottom: none; }
-.detail-label { color: #888; }
-.detail-value { font-weight: bold; color: #333; }
+/* Profile View */
+.profile-view-header { background: #205081; padding: 30px 20px 50px 20px; text-align: center; border-radius: 0 0 20px 20px; margin: -15px -15px 0 -15px; }
+.profile-view-avatar { width: 80px; height: 80px; background: #fff; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #205081; border: 4px solid rgba(255,255,255,0.3); }
+.profile-details-card { background: white; margin: -35px 20px 20px 20px; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; z-index: 5; }
+.detail-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 .level-badge { background: gold; color: #856404; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;}
 
-
-/* ============================================== */
-/* --- TAMBAHAN STYLE BARU (CROP & FITUR BARU) --- */
-/* ============================================== */
-
-/* --- CROPPER MODAL STYLES --- */
-.crop-modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); /* Background gelap transparan */
-    z-index: 9999;
-    display: flex; justify-content: center; align-items: center;
-    backdrop-filter: blur(5px);
-}
-
-.crop-container {
-    background: white;
-    width: 90%;
-    max-width: 400px;
-    padding: 25px 20px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-}
-
-.crop-container h3 {
-    margin-bottom: 20px;
-    color: #205081;
-    font-size: 18px;
-}
-
-/* Wadah Gambar yang akan di-crop */
-.img-container {
-    max-height: 350px;
-    width: 100%;
-    overflow: hidden;
-    margin-bottom: 20px;
-    background: #f0f0f0;
-    border-radius: 8px;
-    /* Pastikan gambar di dalam cropper responsif */
-}
-
-.img-container img {
-    max-width: 100%;
-    display: block; 
-}
-
-/* Tombol Aksi Crop */
-.crop-actions {
-    display: flex; justify-content: space-between; gap: 15px;
-}
-
-.btn-cancel, .btn-save {
-    flex: 1; 
-    padding: 12px; 
-    border: none; 
-    border-radius: 8px; 
-    font-weight: bold; 
-    cursor: pointer; 
-    font-size: 14px;
-    transition: 0.2s;
-}
-
-.btn-cancel {
-    background: #e74c3c; 
-    color: white;
-}
-.btn-cancel:active { transform: scale(0.95); }
-
-.btn-save {
-    background: #205081; 
-    color: white;
-}
-.btn-save:active { transform: scale(0.95); }
-
-/* --- STYLE TAMBAHAN UNTUK DISPLAY FOTO PROFIL --- */
-/* Agar foto profil di navbar bawah selalu bulat sempurna dan tidak gepeng */
-.floating-circle img {
-    object-fit: cover;
-    border-radius: 50%;
-}
-/* ============================================== */
-/* --- ADMIN DASHBOARD STYLES --- */
-/* ============================================== */
-
-/* Navbar Item Admin (Icon A) */
-.fa-font { font-size: 18px; margin-bottom: 4px; } 
-
-/* Grid Menu Admin (4 Tombol Atas) */
-.admin-menu-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    padding: 15px;
-    background: #fff;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.admin-menu-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 10px 5px;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: bold;
-    color: #475569;
-    cursor: pointer;
-    transition: 0.2s;
-    text-align: center;
-}
-
-.admin-menu-item.active {
-    background: #205081;
-    color: white;
-    border-color: #205081;
-}
-
-.admin-menu-item i {
-    font-size: 18px;
-    margin-bottom: 5px;
-}
-
-/* User List Card Style */
-.admin-user-list {
-    padding: 0 15px 80px 15px; /* Padding bawah agar tidak ketutup navbar */
-}
-
-.user-card-admin {
-    background: #fff;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #eee;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    position: relative;
-}
-
-.user-card-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 13px;
-    border-bottom: 1px dashed #f0f0f0;
-    padding-bottom: 5px;
-}
-.user-card-row:last-child { border-bottom: none; margin-bottom: 0; }
-
-.u-label { color: #888; font-size: 12px; }
-.u-value { font-weight: bold; color: #333; word-break: break-all; text-align: right; max-width: 65%; }
-
-.admin-card-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 2px solid #f5f5f5;
-}
-
-.btn-admin-action {
-    flex: 1;
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
-.btn-edit-user { background: #ffeb3b; color: #205081; }
-.btn-del-user { background: #ffebeb; color: #e74c3c; }
-
-/* Badge Admin Profile */
-.badge-admin-website {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(231, 76, 60, 0.4);
-    letter-spacing: 0.5px;
-}
-
 /* ========================================= */
-/* --- TAMBAHKAN STYLE INI KE PALING BAWAH --- */
+/* --- 6. ADMIN & CROPPER --- */
 /* ========================================= */
+.admin-menu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: #fff; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.admin-menu-item { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 5px; border-radius: 10px; font-size: 10px; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s; text-align: center; }
+.admin-menu-item.active { background: #205081; color: white; border-color: #205081; }
+.admin-menu-item i { font-size: 18px; margin-bottom: 5px; }
 
-/* --- STATUS BADGES --- */
-.status-badge {
-    margin-top: 10px;
-    padding: 5px 15px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: bold;
-    text-transform: uppercase;
-    display: inline-block;
-}
+.admin-list-container { padding: 0 10px 80px 10px; }
+.admin-acc-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+.admin-acc-item.warning-border { border-left: 4px solid #f59e0b; }
+.admin-acc-header { padding: 15px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 14px; font-weight: bold; color: #334155; }
+.admin-acc-body { padding: 15px; border-top: 1px solid #e2e8f0; background: #fff; font-size: 13px; color: #64748b; }
+.acc-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #f1f5f9; padding-bottom: 4px; }
+.acc-actions { display: flex; gap: 10px; margin-top: 15px; }
+.btn-acc-action { flex: 1; padding: 8px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; font-size: 12px; }
+.btn-acc-action.edit { background: #3b82f6; } .btn-acc-action.delete { background: #ef4444; } .btn-acc-action.approve { background: #10b981; } .btn-acc-action.reject { background: #f59e0b; }
+
+.crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+.crop-container { background: white; width: 90%; max-width: 400px; padding: 25px 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+.img-container { max-height: 350px; width: 100%; overflow: hidden; margin-bottom: 20px; background: #f0f0f0; border-radius: 8px; }
+.img-container img { max-width: 100%; display: block; }
+.crop-actions { display: flex; justify-content: space-between; gap: 15px; }
+.btn-cancel { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; background: #e74c3c; color: white; }
+.btn-save { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; background: #205081; color: white; }
+
+.custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); animation: fadeIn 0.2s; }
+.custom-alert-box { background: #fff; width: 300px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
+.custom-alert-header { background: #205081; color: white; padding: 12px 15px; font-weight: bold; font-size: 14px; }
+.custom-alert-body { padding: 25px 20px; text-align: center; color: #333; }
+.btn-alert-ok { width: 100%; padding: 12px; border: none; background: #f8fafc; color: #205081; font-weight: bold; cursor: pointer; border-top: 1px solid #eee; }
+@keyframes popUp { to { transform: scale(1); } }
+.status-badge { padding: 5px 15px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: inline-block; margin-top: 5px; }
 .status-badge.green { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
 .status-badge.red { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
 .status-badge.yellow { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+.verification-action-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #eee; padding-top: 10px; }
+.btn-verify-mini { background: #205081; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+.verify-status-text { font-size: 12px; color: #e74c3c; font-weight: bold; }
+.warning-box { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 10px; border-radius: 8px; font-size: 11px; margin-top: 10px; text-align: left; line-height: 1.4; }
 
-/* --- VERIFICATION ACTION ROW (SETTINGS) --- */
-.verification-action-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-    border-top: 1px dashed #eee;
-    padding-top: 10px;
-}
-.btn-verify-mini {
-    background: #205081;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-}
-.verify-status-text {
-    font-size: 12px;
-    color: #e74c3c;
-    font-weight: bold;
-}
-
-/* --- ADMIN ACCORDION STYLE --- */
-.admin-list-container { padding: 0 10px 80px 10px; }
-
-.admin-acc-item {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    overflow: hidden;
-}
-.admin-acc-item.warning-border { border-left: 4px solid #f59e0b; }
-
-.admin-acc-header {
-    padding: 15px;
-    background: #f8fafc;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    color: #334155;
-    transition: 0.2s;
-}
-.admin-acc-header:hover { background: #f1f5f9; }
-
-.admin-acc-body {
-    padding: 15px;
-    border-top: 1px solid #e2e8f0;
-    background: #fff;
-    font-size: 13px;
-    color: #64748b;
-}
-
-.acc-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    border-bottom: 1px dashed #f1f5f9;
-    padding-bottom: 4px;
-}
-.acc-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.btn-acc-action {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 12px;
-}
-.btn-acc-action.edit { background: #3b82f6; }
-.btn-acc-action.delete { background: #ef4444; }
-.btn-acc-action.approve { background: #10b981; }
-.btn-acc-action.reject { background: #f59e0b; }
-
-/* --- WARNING BOX IN MODAL --- */
-.warning-box {
-    background: #fffbeb;
-    border: 1px solid #fcd34d;
-    color: #92400e;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 11px;
-    margin-top: 10px;
-    text-align: left;
-    line-height: 1.4;
-}
-
-/* ============================================== */
-/* --- PRODUK PAGE STYLES --- */
-/* ============================================== */
-
-.product-navbar-top {
-    background: #205081;
-    padding: 20px;
-    border-radius: 0 0 20px 20px;
-    text-align: center;
-    color: white;
-    box-shadow: 0 4px 10px rgba(32,80,129,0.2);
-}
-
-.add-product-box {
-    background: rgba(255,255,255,0.15);
-    border: 1px dashed rgba(255,255,255,0.5);
-    border-radius: 12px;
-    padding: 15px;
-    cursor: pointer;
-    transition: 0.2s;
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 10px auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.add-product-box:active {
-    background: rgba(255,255,255,0.3);
-    transform: scale(0.95);
-}
-
-.plus-icon {
-    font-size: 30px;
-    font-weight: bold;
-    line-height: 1;
-}
-
-.add-text {
-    font-size: 9px;
-    margin-top: 5px;
-    font-weight: bold;
-}
-
-.product-list-header {
-    font-weight: bold;
-    font-size: 16px;
-    margin-top: 5px;
-}
-
-/* LIST PRODUK ANDA (CARD STYLE) */
-.user-product-card {
-    display: flex;
-    background: white;
-    padding: 10px;
-    border-bottom: 1px solid #f0f0f0;
-    align-items: center;
-    gap: 12px;
-}
-
-.u-prod-img {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
-    object-fit: cover;
-    background: #eee;
-}
-
-.u-prod-info {
-    flex: 1;
-}
-
-.u-prod-name {
-    font-size: 14px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 2px;
-}
-
-.u-prod-price {
-    font-size: 13px;
-    color: #205081;
-    font-weight: bold;
-}
-
-.u-prod-status {
-    font-size: 10px;
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-top: 4px;
-    font-weight: bold;
-}
-.status-pending { background: #fef9c3; color: #a16207; } /* Kuning */
-.status-done { background: #dcfce7; color: #166534; } /* Hijau */
-.status-rejected { background: #fee2e2; color: #991b1b; } /* Merah */
-
-/* PUBLIC PRODUCT CARD (GRID VIEW) */
-.public-prod-grid {
+/* ========================================= */
+/* --- 7. MARKETPLACE / PRODUK (NEW FEATURE) --- */
+/* ========================================= */
+/* Grid Produk di Page Produk */
+.product-grid-display {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding: 0 5px;
+    grid-template-columns: repeat(2, 1fr); /* 2 Kolom */
+    gap: 15px;
+    padding: 15px;
 }
 
-.public-prod-card {
+/* Tombol Tambah Produk */
+.add-product-wrapper {
     background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    border: 1px solid #eee;
+    border: 2px dashed #205081;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
     cursor: pointer;
-    transition: transform 0.2s;
+    margin: 15px;
+    transition: 0.2s;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
+.add-product-wrapper:hover { background: #f0f9ff; }
+.add-product-wrapper:active { transform: scale(0.98); }
+.btn-add-circle {
+    width: 50px; height: 50px;
+    background: #205081; color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; margin-bottom: 10px;
+    box-shadow: 0 4px 10px rgba(32,80,129,0.3);
+}
+.text-add-title { font-weight: bold; color: #205081; font-size: 16px; }
+.text-add-subtitle { color: #888; font-size: 12px; margin-top: 2px; }
 
-.public-prod-card:active { transform: scale(0.98); }
+/* Kartu Produk */
+.prod-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: 0.2s;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #eee;
+}
+.prod-card:active { transform: scale(0.97); }
 
 .prod-img-box {
     width: 100%;
-    aspect-ratio: 1/1; /* Kotak 1:1 */
+    padding-top: 100%; /* 1:1 Aspect Ratio */
+    position: relative;
     background: #f0f0f0;
-    overflow: hidden;
 }
-
 .prod-img-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.no-img-placeholder {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: #ccc; font-size: 30px;
+}
+.prod-badge-cat {
+    position: absolute; top: 5px; right: 5px;
+    background: rgba(0,0,0,0.6); color: white;
+    padding: 2px 6px; font-size: 9px;
+    border-radius: 4px; font-weight: bold;
+    backdrop-filter: blur(2px);
 }
 
-.prod-details {
-    padding: 10px;
+.prod-info-box { padding: 10px; }
+.prod-name {
+    font-weight: bold; font-size: 13px; color: #333; margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
-.prod-title {
-    font-size: 13px;
-    font-weight: bold;
-    color: #333;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.prod-desc-short {
+    font-size: 11px; color: #888; margin-bottom: 8px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.prod-price { font-weight: bold; color: #205081; font-size: 14px; }
+.loading-state { grid-column: span 2; text-align: center; padding: 40px; color: #888; font-size: 14px; }
 
-.prod-desc-trunc {
-    font-size: 10px;
-    color: #777;
-    margin: 4px 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+/* Modal Full Screen (Tambah Produk) */
+.modal-full-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #f8fafc; z-index: 3000;
+    display: flex; flex-direction: column;
+    animation: slideInRight 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-.prod-price {
-    font-size: 12px;
-    color: #205081;
-    font-weight: bold;
+.modal-fs-header {
+    background: #205081; color: white; padding: 15px;
+    display: flex; align-items: center; gap: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0;
 }
+.close-fs { cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.fs-title { font-weight: bold; font-size: 16px; margin-left: auto; }
+.modal-fs-body { flex: 1; padding: 20px; overflow-y: auto; padding-bottom: 80px; }
 
-/* MODAL TAMBAH PRODUK */
-.product-modal-box {
-    max-width: 400px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
+/* Tabs & Sub Kategori */
+.product-cat-selector {
+    display: flex; gap: 10px; overflow-x: auto;
+    padding-bottom: 5px; margin-bottom: 20px;
+    -ms-overflow-style: none; scrollbar-width: none;
 }
-
-.category-selection-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 5px;
+.product-cat-selector::-webkit-scrollbar { display: none; }
+.p-cat-item {
+    background: white; border: 1px solid #ddd;
+    padding: 10px 15px; border-radius: 20px;
+    font-size: 12px; font-weight: bold; color: #555;
+    white-space: nowrap; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; transition: 0.2s;
 }
+.p-cat-item.active { background: #205081; color: white; border-color: #205081; }
 
-.cat-select-item {
-    flex: 1;
-    background: #f1f5f9;
-    padding: 8px 5px;
-    text-align: center;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: bold;
-    cursor: pointer;
-    border: 1px solid transparent;
-    color: #64748b;
+.sub-cat-container { display: flex; flex-direction: column; gap: 8px; }
+.sub-cat-btn {
+    background: white; padding: 12px; border-radius: 8px; border: 1px solid #eee;
+    text-align: left; font-size: 14px; font-weight: 500; color: #333;
+    display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s;
 }
+.sub-cat-btn:hover { background: #f9f9f9; }
+.sub-cat-btn.selected { border-color: #205081; background: #e0f2fe; color: #205081; }
+.sub-cat-btn img { width: 30px; height: 30px; border-radius: 5px; object-fit: cover; }
 
-.cat-select-item.active {
-    background: #205081;
-    color: white;
-    border-color: #205081;
+/* Form Elements */
+.inp-prod {
+    width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;
+    background: white; outline: none; font-size: 14px; transition: 0.2s;
 }
-
-.photo-upload-grid {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding-bottom: 5px;
+.inp-prod:focus { border-color: #205081; }
+.inp-prod.area { height: 100px; resize: none; }
+.btn-submit-prod {
+    width: 100%; background: #205081; color: white; border: none; padding: 15px;
+    border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 25px; margin-bottom: 50px;
+    cursor: pointer; box-shadow: 0 4px 10px rgba(32,80,129,0.3); transition: 0.2s;
 }
+.btn-submit-prod:disabled { background: #ccc; cursor: not-allowed; }
 
-.photo-add-btn {
-    width: 60px;
-    height: 60px;
-    min-width: 60px;
-    border: 2px dashed #ccc;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ccc;
-    font-size: 20px;
-    cursor: pointer;
+.photo-upload-grid { display: flex; gap: 10px; overflow-x: auto; padding: 5px 0; min-height: 75px; }
+.photo-box-add {
+    width: 70px; height: 70px; flex-shrink: 0;
+    border: 2px dashed #205081; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #205081; font-size: 20px; cursor: pointer; background: #f0f9ff;
 }
+.preview-thumb { width: 70px; height: 70px; flex-shrink: 0; border-radius: 8px; object-fit: cover; border: 1px solid #ddd; }
 
-.uploaded-thumb {
-    width: 60px;
-    height: 60px;
-    min-width: 60px;
-    border-radius: 8px;
-    object-fit: cover;
-    border: 1px solid #ddd;
+/* Detail Popup */
+.detail-popup-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); z-index: 4000;
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s; backdrop-filter: blur(5px);
 }
-
-/* MODAL DETAIL FULLSCREEN */
-.product-expand-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
-    z-index: 3000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.3s;
-}
-
-.product-expand-card {
-    background: white;
-    width: 90%;
-    max-width: 380px;
-    border-radius: 16px;
-    overflow: hidden;
-    position: relative;
+.detail-popup-card {
+    width: 90%; max-width: 400px; max-height: 90vh;
+    background: white; border-radius: 16px; overflow-y: auto;
+    position: relative; animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    animation: zoomIn 0.3s;
 }
-
-@keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-.close-expand-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 35px;
-    height: 35px;
-    background: rgba(0,0,0,0.5);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 10;
+.detail-popup-close {
+    position: absolute; top: 15px; right: 15px;
+    width: 35px; height: 35px;
+    background: rgba(255,255,255,0.9); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    cursor: pointer; z-index: 10; color: #e74c3c; font-size: 18px;
+    transition: 0.3s;
 }
-
-.x-mark {
-    width: 14px;
-    height: 14px;
-    position: relative;
+.detail-popup-close:hover { transform: rotate(90deg); background: #e74c3c; color: white; }
+.detail-popup-img-container {
+    width: 100%; height: 320px; background: #f0f0f0;
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
 }
-
-.x-mark .line {
-    position: absolute;
-    width: 100%;
-    height: 2px;
-    background: white;
-    top: 50%;
-    left: 0;
-    transform-origin: center;
+.detail-popup-img-container img { width: 100%; height: 100%; flex-shrink: 0; scroll-snap-align: center; object-fit: cover; }
+.detail-popup-body { padding: 25px 20px; position: relative; }
+.detail-popup-body h2 { font-size: 18px; color: #333; margin-bottom: 5px; line-height: 1.4; }
+.det-price { font-size: 22px; font-weight: 800; color: #205081; margin-bottom: 20px; }
+.det-seller-info {
+    display: flex; align-items: center; gap: 12px; padding: 12px;
+    background: #f8fafc; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0;
 }
-
-.x-mark .line1 { transform: rotate(45deg); }
-.x-mark .line2 { transform: rotate(-45deg); }
-
-.expand-img-container {
-    width: 100%;
-    height: 300px;
-    background: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+.det-seller-info img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
+.s-name { font-weight: bold; font-size: 14px; color: #333; }
+.s-lvl { font-size: 11px; color: #64748b; margin-top: 2px; }
+.det-desc-box {
+    font-size: 13px; color: #555; line-height: 1.6;
+    margin-bottom: 20px; max-height: 150px; overflow-y: auto;
+    background: #fff; padding: 0 5px;
 }
-
-.expand-img-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+.det-payment-info {
+    font-size: 12px; color: #854d0e;
+    background: #fef9c3; padding: 10px; border-radius: 8px;
+    margin-bottom: 20px; border: 1px solid #fde047;
+    display: flex; align-items: center; gap: 8px;
 }
-
-.expand-content {
-    padding: 20px;
-}
-
-.expand-price {
-    font-size: 22px;
-    font-weight: 800;
-    color: #205081;
-    margin: 5px 0 10px;
-}
-
-.expand-desc {
-    font-size: 13px;
-    color: #555;
-    line-height: 1.5;
-    margin-bottom: 20px;
-    max-height: 150px;
-    overflow-y: auto;
-}
-
-.expand-seller-info {
-    font-size: 12px;
-    color: #888;
-    margin-bottom: 20px;
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-}
-
 .btn-buy-now {
-    width: 100%;
-    background: #205081;
-    color: white;
-    border: none;
-    padding: 14px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 14px;
-    cursor: pointer;
+    width: 100%; background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white; border: none; padding: 14px;
+    border-radius: 10px; font-weight: bold; font-size: 14px; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(34,197,94,0.3); transition: 0.2s;
+    text-transform: uppercase; letter-spacing: 0.5px;
 }
-
-/* CSS RESET FOR OTP FIELD */
-.otp-field-long {
-    width: 100%; padding: 12px; font-size: 20px; text-align: center; letter-spacing: 8px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px; outline: none; font-weight: bold;
-}
+.btn-buy-now:active { transform: scale(0.98); }

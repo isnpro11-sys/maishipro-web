@@ -4,42 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maishipro Website</title>
+    <!-- CSS Utama -->
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome untuk Ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Cropper JS untuk Crop Foto Profil -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 </head>
 <body>
 
     <div class="container">
         
-        <!-- HOME PAGE -->
+        <!-- =========================== -->
+        <!-- 1. HALAMAN HOME -->
+        <!-- =========================== -->
         <div id="home-page" class="page-section">
             <header class="header" id="mainHeader">
                 <div class="top-bar">
                     <div class="logo">
                         <i class="fas fa-bars"></i> Maishipro <i class="fas fa-cube" style="margin-left:5px; font-size:16px;"></i>
                     </div>
-                    <div class="header-actions" id="headerAuthArea"></div>
+                    <div class="header-actions" id="headerAuthArea">
+                        <!-- Area Login/Profil akan diisi oleh JS -->
+                    </div>
                 </div>
+
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" placeholder="Cari Game favoritmu...">
                 </div>
             </header>
 
+            <!-- Search Overlay History -->
             <div class="search-overlay" id="searchOverlay">
-                <!-- Content search sama -->
                 <div class="search-content-wrapper">
                     <div class="search-section-title">
                         <span>Riwayat pencarian</span>
                         <span class="btn-close-search" id="closeSearchBtn">Tutup</span>
                     </div>
                     <ul class="history-list">
-                         <li class="history-item"><i class="fas fa-history"></i> Topup Mobile Legends</li>
+                        <li class="history-item" onclick="goToPage('topup-ml', 'Topup Mobile Legends')">
+                            <i class="fas fa-history"></i> Topup Mobile Legends
+                        </li>
                     </ul>
                 </div>
             </div>
 
+            <!-- Banner Slider -->
             <section class="slider-section">
                 <div class="slider-container" id="slider-container">
                     <div class="slider-wrapper" id="slider-wrapper">
@@ -55,43 +66,86 @@
                 </div>
             </section>
 
+            <!-- Info Box -->
+            <section class="info-box-section">
+                <div class="info-box">
+                    <h3>Cara Membeli</h3>
+                    <ol>
+                        <li>Pilih kategori atau produk yang Anda inginkan.</li>
+                        <li>Isi data akun & pilih nominal.</li>
+                        <li>Lanjut ke WhatsApp untuk pembayaran.</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- Tab Populer/Kategori -->
             <div class="beli-cepat-header">
                 <div class="tab-active">
-                    <i class="fas fa-fire" style="margin-right:5px; color: #ffeb3b;"></i> Populer
+                    <i class="fas fa-fire" style="margin-right:5px; color: #ffeb3b;"></i> Kategori
                 </div>
             </div>
 
-            <div class="game-grid">
-                <!-- Static Games -->
-                <div class="game-card" onclick="goToPage('topup-ml', 'Topup Mobile Legends')">
-                    <img src="https://api.deline.web.id/u8m7Yq2Pdu.jpg" alt="MLBB" class="game-icon"><div class="game-name">Topup MLBB</div>
-                </div>
-                <div class="game-card" onclick="goToPage('topup-ff', 'Topup Free Fire')">
-                    <img src="https://api.deline.web.id/BqQnrJVNPO.jpg" alt="FF" class="game-icon"><div class="game-name">Topup FF</div>
-                </div>
-                <div class="game-card" onclick="goToPage('topup-roblox', 'Topup Roblox')">
-                    <img src="https://api.deline.web.id/zQxSf6aiv7.jpg" alt="RBLX" class="game-icon"><div class="game-name">Topup RBLX</div>
-                </div>
-                <div class="game-card" onclick="goToPage('sewa-bot', 'Sewa Bot WA')">
-                    <img src="https://api.deline.web.id/8ASC30F6zj.jpg" alt="Bot" class="game-icon"><div class="game-name">Sewa bot</div>
-                </div>
-            </div>
-            
-            <!-- Category Wrapper where Public Products will also be injected -->
+            <!-- Grid Kategori (Di-render oleh JS) -->
             <div class="category-wrapper-bg" id="category-wrapper-bg">
-                <!-- Kategori Static di render via JS -->
+                <!-- Konten kategori akan muncul di sini via script.js -->
+            </div>
+
+            <!-- Payment Footer -->
+            <section class="payment-section">
+                <div class="payment-header"><i class="fas fa-wallet"></i> Metode Pembayaran</div>
+                <div class="payment-icons">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/1200px-Logo_dana_blue.svg.png" class="pay-logo">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/2560px-Gopay_logo.svg.png" class="pay-logo">
+                    <img src="https://api.deline.web.id/GAUO7HRDdf.png" alt="QRIS" class="pay-logo" style="height: 30px;">
+                </div>
+            </section>
+        </div>
+
+        <!-- =========================== -->
+        <!-- 2. HALAMAN PRODUK (BARU) -->
+        <!-- =========================== -->
+        <div id="produk-page" class="page-section">
+            <header class="header">
+                <div class="top-bar">
+                    <div class="logo">Katalog Produk</div>
+                </div>
+            </header>
+
+            <div class="produk-container-main">
+                <!-- Tombol Tambah Produk (Kotak dengan +) -->
+                <div class="add-product-wrapper" onclick="handleAddProductClick()">
+                    <div class="btn-add-circle">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="text-add-title">Tambahkan Produk</div>
+                    <div class="text-add-subtitle">List Produk Anda</div>
+                </div>
+
+                <!-- Grid Tampilan Produk -->
+                <div class="product-grid-display" id="marketplaceGrid">
+                    <!-- Produk akan dirender di sini oleh JS -->
+                    <div class="loading-state" style="grid-column: span 2; text-align:center; padding:30px; color:#888;">
+                        <i class="fas fa-spinner fa-spin"></i> Memuat Produk...
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- TRANSAKSI PAGE -->
+        <!-- =========================== -->
+        <!-- 3. HALAMAN TRANSAKSI -->
+        <!-- =========================== -->
         <div id="transaksi-page" class="page-section">
             <header class="header">
-                <div class="top-bar"><div class="logo">Riwayat Transaksi</div></div>
+                <div class="top-bar">
+                    <div class="logo">Riwayat Transaksi</div>
+                </div>
             </header>
             <div id="transaksi-content" class="dynamic-content"></div>
         </div>
 
-        <!-- ADMIN PAGE -->
+        <!-- =========================== -->
+        <!-- 4. HALAMAN ADMIN -->
+        <!-- =========================== -->
         <div id="admin-page" class="page-section">
             <header class="header">
                 <div class="top-bar">
@@ -106,258 +160,356 @@
                 <div class="admin-menu-item" onclick="loadAdminTab('verif', this)">
                     <i class="fas fa-check-circle"></i> Verifikasi
                 </div>
-                <div class="admin-menu-item" onclick="loadAdminTab('chat', this)">
-                    <i class="fas fa-comments"></i> Chat
-                </div>
-                <!-- TOMBOL ACC BARU -->
-                <div class="admin-menu-item" onclick="loadAdminTab('acc', this)">
-                    <i class="fas fa-file-invoice"></i> Acc Produk
-                </div>
+                <!-- Menu lain jika diperlukan -->
             </div>
 
             <div id="admin-content-area" class="dynamic-content" style="padding: 0;"></div>
         </div>
 
-        <!-- PROFILE PAGE -->
+        <!-- =========================== -->
+        <!-- 5. HALAMAN PROFIL -->
+        <!-- =========================== -->
         <div id="profile-page" class="page-section">
-            <header class="header"><div class="top-bar"><div class="logo">Profil Saya</div></div></header>
+            <header class="header">
+                <div class="top-bar">
+                    <div class="logo">Profil Saya</div>
+                </div>
+            </header>
             <div id="profile-content" class="dynamic-content"></div>
         </div>
 
-        <!-- PRODUK PAGE (BARU) -->
-        <div id="produk-page" class="page-section">
-            <div class="product-navbar-top">
-                <div class="add-product-box" onclick="openAddProductModal()">
-                    <div class="plus-icon">+</div>
-                    <div class="add-text">Tambahkan Produk</div>
-                </div>
-                <div class="product-list-header">List Produk Anda</div>
-            </div>
-            
-            <div id="user-product-list" class="dynamic-content" style="padding-top: 10px;">
-                <!-- List produk user akan muncul di sini -->
-                <div class="empty-state-placeholder">
-                    <i class="fas fa-box-open" style="font-size:30px; margin-bottom:10px;"></i>
-                    <p>Anda belum memiliki produk.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- PENGATURAN PAGE -->
+        <!-- =========================== -->
+        <!-- 6. HALAMAN PENGATURAN -->
+        <!-- =========================== -->
         <div id="pengaturan-page" class="page-section">
-            <header class="header"><div class="top-bar"><div class="logo">Pengaturan</div></div></header>
+            <header class="header">
+                <div class="top-bar">
+                    <div class="logo">Pengaturan</div>
+                </div>
+            </header>
             <div id="pengaturan-content" class="dynamic-content"></div>
         </div>
 
-        <!-- DETAIL PAGE (GENERAL) -->
+        <!-- =========================== -->
+        <!-- 7. HALAMAN DETAIL (UMUM) -->
+        <!-- =========================== -->
         <div id="detail-page" class="page-section">
             <div class="detail-header">
                 <div class="btn-back" onclick="goBack()"><i class="fas fa-arrow-left"></i></div>
                 <div class="detail-title" id="page-title">Detail</div>
             </div>
-            <div class="detail-content" id="page-content"></div>
+            <div class="detail-content" id="page-content">
+                <div class="empty-state-placeholder">
+                    <i class="fas fa-box-open" style="font-size: 40px; margin-bottom: 15px; color:#ccc;"></i>
+                    <p>Konten sedang dimuat...</p>
+                </div>
+            </div>
         </div>
 
-        <!-- BOTTOM NAV -->
+        <!-- =========================== -->
+        <!-- NAVBAR BAWAH (NAVIGATION) -->
+        <!-- =========================== -->
         <nav class="bottom-navbar">
-            <div class="nav-item active" id="nav-home" onclick="switchMainTab('home')"><i class="fas fa-home"></i><span>Home</span></div>
-            <div class="nav-item" id="nav-transaksi" onclick="switchMainTab('transaksi')"><i class="fas fa-exchange-alt"></i><span>Transaksi</span></div>
-            <div class="nav-item" id="nav-admin" onclick="switchMainTab('admin')" style="display: none;"><i class="fas fa-font"></i><span>Admin</span></div>
-            <div class="nav-item center-item" id="nav-profile" onclick="switchMainTab('profile')">
-                <div class="floating-circle"><img src="https://api.deline.web.id/76NssFHmcI.png"></div><span>Profile</span>
+            <div class="nav-item active" id="nav-home" onclick="switchMainTab('home')">
+                <i class="fas fa-home"></i><span>Home</span>
             </div>
-            <div class="nav-item" id="nav-produk" onclick="switchMainTab('produk')"><i class="fas fa-shopping-basket"></i><span>Produk</span></div>
-            <div class="nav-item" id="nav-pengaturan" onclick="switchMainTab('pengaturan')"><i class="fas fa-cog"></i><span>Pengaturan</span></div>
+            
+            <div class="nav-item" id="nav-transaksi" onclick="switchMainTab('transaksi')">
+                <i class="fas fa-exchange-alt"></i><span>Transaksi</span>
+            </div>
+
+            <div class="nav-item" id="nav-admin" onclick="switchMainTab('admin')" style="display: none;">
+                <i class="fas fa-font"></i><span>Admin</span>
+            </div>
+
+            <div class="nav-item center-item" id="nav-profile" onclick="switchMainTab('profile')">
+                <div class="floating-circle"><img src="https://api.deline.web.id/76NssFHmcI.png"></div>
+                <span>Profile</span>
+            </div>
+            <div class="nav-item" id="nav-produk" onclick="switchMainTab('produk')">
+                <i class="fas fa-shopping-basket"></i><span>Produk</span>
+            </div>
+            <div class="nav-item" id="nav-pengaturan" onclick="switchMainTab('pengaturan')">
+                <i class="fas fa-cog"></i><span>Pengaturan</span>
+            </div>
         </nav>
 
-    </div>
+    </div> <!-- End Container -->
 
-    <!-- MODAL TAMBAH PRODUK -->
-    <div id="addProductModal" class="auth-overlay">
-        <div class="auth-box product-modal-box">
-            <span class="close-auth" onclick="closeAddProductModal()">&times;</span>
-            <h2 class="auth-title" style="margin-bottom: 20px;">Tambah Produk</h2>
-            
-            <form onsubmit="handleSubmitProduct(event)">
-                <!-- Kategori Utama -->
-                <div class="form-group-styled">
-                    <label class="form-label">Kategori</label>
-                    <div class="category-selection-row">
-                        <div class="cat-select-item" onclick="selectProductCategory('akun-game', this)">Akun Game</div>
-                        <div class="cat-select-item" onclick="selectProductCategory('joki-game', this)">Joki Game</div>
-                        <div class="cat-select-item" onclick="selectProductCategory('lainnya', this)">Lainnya</div>
-                    </div>
-                    <input type="hidden" id="prodCategory" required>
-                </div>
+    <!-- =========================== -->
+    <!-- MODAL & OVERLAYS -->
+    <!-- =========================== -->
 
-                <!-- Sub Kategori (Muncul setelah pilih Kategori) -->
-                <div id="subCategoryArea" class="form-group-styled" style="display: none;">
-                    <label class="form-label">Pilih Game / Jenis</label>
-                    <select id="prodSubCategory" class="form-input-styled">
-                        <!-- Options generated by JS -->
-                    </select>
-                </div>
-
-                <!-- Foto Produk -->
-                <div class="form-group-styled">
-                    <label class="form-label">Foto Produk (Max 5)</label>
-                    <div class="photo-upload-grid" id="photoUploadGrid">
-                        <div class="photo-add-btn" onclick="triggerProductPhotoUpload()">
-                            <i class="fas fa-camera"></i>
-                        </div>
-                    </div>
-                    <input type="file" id="productPhotoInput" accept="image/*" style="display: none;" multiple>
-                </div>
-
-                <div class="input-with-icon">
-                    <input type="text" id="prodName" placeholder="Nama Barang" required class="form-input-styled">
-                </div>
-
-                <div class="input-with-icon">
-                    <textarea id="prodDesc" placeholder="Deskripsi Produk..." rows="3" required class="form-input-styled"></textarea>
-                </div>
-
-                <div class="input-with-icon">
-                    <input type="number" id="prodPrice" placeholder="Harga (Rp)" required class="form-input-styled">
-                </div>
-
-                <!-- Metode Pembayaran -->
-                <div class="form-group-styled">
-                    <label class="form-label">Pembayaran via</label>
-                    <select id="prodPaymentMethod" class="form-input-styled" onchange="togglePaymentNumber(this.value)">
-                        <option value="">Pilih Metode</option>
-                        <option value="Dana">Dana</option>
-                        <option value="Gopay">Gopay</option>
-                    </select>
-                </div>
-
-                <div class="input-with-icon" id="paymentNumberArea" style="display: none;">
-                    <input type="number" id="prodPaymentNumber" placeholder="Nomor Rekening / E-Wallet" class="form-input-styled">
-                </div>
-
-                <button type="submit" class="btn-auth-action" id="btnAddProdSubmit">TAMBAHKAN</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL DETAIL PRODUK (FULLSCREEN EXPAND) -->
-    <div id="productDetailModal" class="product-expand-overlay" style="display: none;">
-        <div class="product-expand-card">
-            <div class="close-expand-btn" onclick="closeProductDetail()">
-                <div class="x-mark">
-                    <span class="line line1"></span>
-                    <span class="line line2"></span>
-                </div>
-            </div>
-            
-            <div class="expand-img-container">
-                <img id="detailProdImg" src="" onclick="viewFullImage(this.src)">
-                <div class="img-counter" id="imgCounterBadge" style="display:none;">1/1</div>
-            </div>
-            
-            <div class="expand-content">
-                <h2 id="detailProdName">Nama Produk</h2>
-                <div class="expand-price" id="detailProdPrice">Rp 0</div>
-                <div class="expand-desc" id="detailProdDesc">Deskripsi lengkap...</div>
-                
-                <div class="expand-seller-info">
-                    <i class="fas fa-store"></i> Penjual: <span id="detailProdSeller">User</span>
-                </div>
-
-                <button class="btn-buy-now" onclick="buyProductAction()">BELI SEKARANG</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal2 Auth & Lainnya (Sama seperti sebelumnya) -->
+    <!-- 1. AUTH OVERLAY (Login/Reg/OTP) -->
     <div id="authOverlay" class="auth-overlay">
+        
         <!-- Login Box -->
         <div id="loginBox" class="auth-box">
             <span class="close-auth" onclick="closeAuthModal()">&times;</span>
             <div class="icon-circle-top"><i class="fas fa-cube"></i></div>
             <h2 class="auth-title">Maishipro</h2>
+            <p class="auth-subtitle">Silakan masuk ke akun Anda</p>
             <form onsubmit="handleLogin(event)">
-                <div class="input-with-icon"><i class="fas fa-user input-icon-left"></i><input type="text" id="loginInput" placeholder="Username / Email" required></div>
                 <div class="input-with-icon">
-                    <i class="fas fa-lock input-icon-left"></i><input type="password" id="loginPass" placeholder="Password" required>
+                    <i class="fas fa-user input-icon-left"></i>
+                    <input type="text" id="loginInput" placeholder="Username / Email" required>
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock input-icon-left"></i>
+                    <input type="password" id="loginPass" placeholder="Password" required>
                     <i class="fas fa-eye-slash password-toggle" onclick="togglePass('loginPass', this)"></i>
                 </div>
                 <button type="submit" class="btn-auth-action" id="btnLoginBtn">LOGIN</button>
             </form>
             <div class="mt-2">Tidak punya akun? <span class="forgot-link" onclick="switchAuth('register')">Daftar</span></div>
-        </div>
-        
-        <!-- Register, OTP, Verification, Admin Edit (Hidden by default) -->
-        <div id="registerBox" class="auth-box" style="display:none;">
-             <span class="close-auth" onclick="closeAuthModal()">&times;</span>
-             <h2 class="auth-title">Daftar</h2>
-             <form onsubmit="handleRegisterRequest(event)">
-                 <div class="input-with-icon"><input type="text" id="regUser" placeholder="Username" required></div>
-                 <div class="input-with-icon"><input type="email" id="regEmail" placeholder="Email" required></div>
-                 <div class="input-with-icon"><input type="text" id="regPhone" placeholder="WA" required></div>
-                 <div class="input-with-icon"><input type="password" id="regPass" placeholder="Pass" required></div>
-                 <div class="input-with-icon"><input type="password" id="regConfirmPass" placeholder="Confirm Pass" required></div>
-                 <button type="submit" class="btn-auth-action" id="btnRegBtn">DAFTAR</button>
-             </form>
-             <div class="mt-2"><span class="forgot-link" onclick="switchAuth('login')">Login</span></div>
+            <div class="mt-2"><span class="forgot-link" onclick="switchAuth('forgot')">Lupa Password?</span></div>
         </div>
 
-        <div id="otpBox" class="auth-box" style="display: none;">
-            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
-            <h2 class="auth-title">Verifikasi OTP</h2>
-            <p id="otpTextEmail" style="font-size:12px;color:#666;"></p>
-            <input type="number" id="otpInputLong" placeholder="KODE" class="otp-field-long">
-            <button onclick="handleVerifyOtp()" class="btn-auth-action" id="btnVerifyBtn">VERIFIKASI</button>
-        </div>
-
+        <!-- Verification Modal -->
         <div id="verificationModal" class="auth-box" style="display: none;">
             <span class="close-auth" onclick="closeAuthModal()">&times;</span>
             <h2 class="auth-title">Verifikasi Akun</h2>
+            
             <div id="verifStep1">
+                <p class="auth-subtitle">Pastikan data Anda benar.</p>
                 <form onsubmit="handleVerificationConfirm(event)">
-                    <input type="text" id="verifUsername" placeholder="Username" class="form-input-styled" required>
-                    <input type="email" id="verifEmail" placeholder="Email" class="form-input-styled" required>
-                    <input type="text" id="verifPhone" placeholder="Nomor WA" class="form-input-styled" required>
-                    <button type="submit" class="btn-auth-action" id="btnVerifConfirm">KONFIRMASI</button>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user input-icon-left"></i>
+                        <input type="text" id="verifUsername" placeholder="Username" required>
+                    </div>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope input-icon-left"></i>
+                        <input type="email" id="verifEmail" placeholder="Email" required>
+                    </div>
+                    <div class="input-with-icon">
+                        <i class="fas fa-phone input-icon-left"></i>
+                        <input type="text" id="verifPhone" placeholder="Nomor WhatsApp" required>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <b>PERINGATAN:</b> Data tidak bisa diubah lagi (PERMANEN) jika sudah terverifikasi.
+                    </div>
+
+                    <button type="submit" class="btn-auth-action" id="btnVerifConfirm" style="margin-top: 15px;">KONFIRMASI</button>
                 </form>
             </div>
-            <div id="verifStep2" style="display:none;">
-                <input type="number" id="verifOtpCode" placeholder="Kode OTP" class="otp-field-long">
-                <button onclick="handleVerificationSubmitOtp()" class="btn-auth-action" id="btnVerifSubmit">KIRIM</button>
+
+            <div id="verifStep2" style="display: none;">
+                <div class="icon-circle-top" style="background:#e0f2fe; color:#0284c7; margin-bottom:15px;">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+                <p class="auth-subtitle">Masukkan Kode OTP dari Email.</p>
+                <input type="number" id="verifOtpCode" class="otp-full-input" placeholder="OTP CODE">
+                <button onclick="handleVerificationSubmitOtp()" class="btn-auth-action" id="btnVerifSubmit">KIRIM & VERIFIKASI</button>
+                <div class="mt-2" style="font-size:12px; color:#666;">Cek Folder Spam jika tidak masuk.</div>
             </div>
         </div>
 
-         <div id="adminEditUserModal" class="auth-box" style="display: none;">
+        <!-- Register Box -->
+        <div id="registerBox" class="auth-box" style="display: none;">
+            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+            <h2 class="auth-title">Daftar Akun</h2>
+            <p class="auth-subtitle">Isi data diri Anda</p>
+            <form onsubmit="handleRegisterRequest(event)">
+                <div class="input-with-icon"><i class="fas fa-user input-icon-left"></i><input type="text" id="regUser" placeholder="Username" required></div>
+                <div class="input-with-icon"><i class="fas fa-envelope input-icon-left"></i><input type="email" id="regEmail" placeholder="Email Aktif" required></div>
+                <div class="input-with-icon"><i class="fas fa-phone input-icon-left"></i><input type="tel" id="regPhone" placeholder="Nomor WhatsApp" required></div>
+                
+                <div class="input-with-icon">
+                    <i class="fas fa-lock input-icon-left"></i>
+                    <input type="password" id="regPass" placeholder="Password (Min 9, 1 Besar, 1 Angka)" required>
+                    <i class="fas fa-eye-slash password-toggle" onclick="togglePass('regPass', this)"></i>
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-check-circle input-icon-left"></i>
+                    <input type="password" id="regConfirmPass" placeholder="Konfirmasi Password" required>
+                    <i class="fas fa-eye-slash password-toggle" onclick="togglePass('regConfirmPass', this)"></i>
+                </div>
+                
+                <button type="submit" class="btn-auth-action" id="btnRegBtn">DAFTAR</button>
+            </form>
+            <div class="mt-2">Sudah punya akun? <span class="forgot-link" onclick="switchAuth('login')">Login</span></div>
+        </div>
+
+        <!-- OTP Box (Login/Reg) -->
+        <div id="otpBox" class="auth-box" style="display: none;">
+            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+            <h2 class="auth-title">Verifikasi</h2>
+            <p class="auth-subtitle" id="otpTextEmail">Masukkan 6 digit kode dari email</p>
+            <div class="icon-circle-top" style="background:#e0f2fe; color:#0284c7; margin-bottom:15px; width:50px; height:50px; font-size:20px;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <input type="number" id="otpInputLong" class="otp-full-input" placeholder="Kode OTP" oninput="checkAutoSubmitOtp(this)">
+            <button onclick="handleVerifyOtp()" class="btn-auth-action" id="btnVerifyBtn">VERIFIKASI</button>
+        </div>
+
+        <!-- Forgot Password Box -->
+        <div id="forgotBox" class="auth-box" style="display: none;">
+            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+            <h2 class="auth-title">Reset Password</h2>
+            <form onsubmit="handleForgotRequest(event)">
+                <div class="input-with-icon"><i class="fas fa-envelope input-icon-left"></i><input type="email" id="forgotEmail" placeholder="Email Terdaftar" required></div>
+                <button type="submit" class="btn-auth-action" id="btnForgotBtn">KIRIM KODE</button>
+            </form>
+            <div class="mt-2"><span class="forgot-link" onclick="switchAuth('login')">Kembali ke Login</span></div>
+        </div>
+
+        <!-- Change Password Box -->
+        <div id="changePassModal" class="auth-box" style="display: none;">
+            <span class="close-auth" onclick="closeAuthModal()">&times;</span>
+            <h2 class="auth-title">Ubah Password</h2>
+            <form onsubmit="handleChangePassword(event)">
+                <div class="input-with-icon">
+                    <i class="fas fa-lock input-icon-left"></i>
+                    <input type="password" id="oldPass" placeholder="Password Lama" required>
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-key input-icon-left"></i>
+                    <input type="password" id="newPass" placeholder="Password Baru" required>
+                </div>
+                <button type="submit" class="btn-auth-action">SIMPAN</button>
+            </form>
+        </div>
+
+        <!-- Admin Edit User Box -->
+        <div id="adminEditUserModal" class="auth-box" style="display: none;">
             <span class="close-auth" onclick="closeAdminEditModal()">&times;</span>
-            <h2 class="auth-title">Edit User</h2>
+            <h2 class="auth-title">Edit User (Admin)</h2>
             <form onsubmit="handleAdminUpdateUser(event)">
                 <input type="hidden" id="editUserId">
-                <input type="text" id="editUserUsername" placeholder="User" class="form-input-styled">
-                <input type="text" id="editUserEmail" placeholder="Email" class="form-input-styled">
-                <input type="text" id="editUserPhone" placeholder="Phone" class="form-input-styled">
-                <input type="text" id="editUserPass" placeholder="Pass" class="form-input-styled">
-                <button type="submit" class="btn-auth-action">Simpan</button>
+                <div class="input-with-icon"><input type="text" id="editUserUsername" placeholder="Username" required></div>
+                <div class="input-with-icon"><input type="text" id="editUserEmail" placeholder="Email" required></div>
+                <div class="input-with-icon"><input type="text" id="editUserPhone" placeholder="No WhatsApp" required></div>
+                <div class="input-with-icon"><input type="text" id="editUserPass" placeholder="Password" required></div>
+                <button type="submit" class="btn-auth-action" id="btnAdminSave">SIMPAN</button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- 2. MODAL TAMBAH PRODUK (FULL SCREEN) -->
+    <div id="addProductModal" class="modal-full-screen" style="display: none;">
+        <div class="modal-fs-header">
+            <span onclick="closeAddProductModal()" class="close-fs"><i class="fas fa-arrow-left"></i> Kembali</span>
+            <span class="fs-title">Tambah Produk</span>
+        </div>
+        
+        <div class="modal-fs-body">
+            <!-- Pilihan Kategori Tab -->
+            <div class="product-cat-selector">
+                <div class="p-cat-item active" onclick="selectProdCat('akun-game', this)"><i class="fas fa-gamepad"></i> Akun</div>
+                <div class="p-cat-item" onclick="selectProdCat('topup-game', this)"><i class="fas fa-gem"></i> Topup</div>
+                <div class="p-cat-item" onclick="selectProdCat('joki-game', this)"><i class="fas fa-trophy"></i> Joki</div>
+                <div class="p-cat-item" onclick="selectProdCat('lainnya', this)"><i class="fas fa-layer-group"></i> Lain</div>
+            </div>
+
+            <!-- Sidebar Sub Kategori (Accordion Style) -->
+            <div id="subCatContainer" class="sub-cat-container">
+                <!-- Diisi JS -->
+            </div>
+
+            <!-- Form Input Produk -->
+            <form id="formAddProduct" onsubmit="submitProduct(event)" style="display:none; margin-top:20px;">
+                <input type="hidden" id="finalCategory">
+                <input type="hidden" id="finalSubCategory">
+
+                <label class="lbl-form">Foto Produk (Max 5)</label>
+                <div class="photo-upload-grid">
+                    <div class="photo-box-add" onclick="document.getElementById('prodImgInput').click()">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <!-- Preview Images -->
+                    <div id="previewContainer" style="display:contents;"></div>
+                </div>
+                <input type="file" id="prodImgInput" multiple accept="image/*" style="display:none;" onchange="handleProductImgSelect(this)">
+
+                <label class="lbl-form">Nama Produk</label>
+                <input type="text" id="prodName" class="inp-prod" placeholder="Contoh: Akun Sultan Full Skin" required>
+
+                <label class="lbl-form">Deskripsi</label>
+                <textarea id="prodDesc" class="inp-prod area" placeholder="Spesifikasi akun..." required></textarea>
+
+                <label class="lbl-form">Harga (Rp)</label>
+                <input type="number" id="prodPrice" class="inp-prod" placeholder="Contoh: 50000" required>
+
+                <label class="lbl-form">Metode Pembayaran</label>
+                <select id="prodPayment" class="inp-prod" onchange="toggleRekInput(this)">
+                    <option value="">Pilih Bank / E-Wallet</option>
+                    <option value="dana">DANA</option>
+                    <option value="gopay">GOPAY</option>
+                </select>
+
+                <div id="rekInputContainer" style="display:none; margin-top:10px;">
+                    <label class="lbl-form">Nomor Rekening / E-Wallet</label>
+                    <input type="number" id="prodRek" class="inp-prod" placeholder="08xxxxx">
+                </div>
+
+                <button type="submit" class="btn-submit-prod" id="btnAddProdSubmit">TAMBAHKAN</button>
             </form>
         </div>
     </div>
 
-    <!-- Custom Alert -->
+    <!-- 3. POPUP DETAIL PRODUK -->
+    <div id="productDetailModal" class="detail-popup-overlay" style="display:none;">
+        <div class="detail-popup-card">
+            <!-- Tanda Silang Unik -->
+            <div class="detail-popup-close" onclick="closeProductDetail()">
+                <i class="fas fa-times"></i>
+            </div>
+            
+            <div class="detail-popup-img-container" id="detImgContainer">
+                <!-- Slider Gambar Produk -->
+            </div>
+
+            <div class="detail-popup-body">
+                <h2 id="detName">Nama Produk</h2>
+                <div class="det-price" id="detPrice">Rp 0</div>
+                
+                <div class="det-seller-info">
+                    <img id="detSellerPic" src="">
+                    <div>
+                        <div id="detSellerName" class="s-name">Penjual</div>
+                        <div id="detSellerLevel" class="s-lvl">Member</div>
+                    </div>
+                </div>
+
+                <div class="det-desc-box">
+                    <p id="detDesc">Deskripsi lengkap...</p>
+                </div>
+
+                <div class="det-payment-info">
+                    Metode: <b id="detPayment">DANA</b> (<span id="detRek">08xx</span>)
+                </div>
+
+                <button class="btn-buy-now" onclick="alert('Belum tersedia')">
+                    BELI SEKARANG
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ALERT CUSTOM SYSTEM -->
     <div id="customAlertModal" class="custom-alert-overlay" style="display: none;">
         <div class="custom-alert-box">
-            <div class="custom-alert-header"><i class="fas fa-cube"></i> Maishipro</div>
+            <div class="custom-alert-header">
+                <i class="fas fa-cube"></i> Maishipro
+            </div>
             <div class="custom-alert-body">
                 <h4 id="customAlertTitle">Notifikasi</h4>
-                <p id="customAlertMsg">Pesan</p>
+                <p id="customAlertMsg">Pesan notifikasi muncul di sini.</p>
             </div>
             <button class="btn-alert-ok" onclick="closeAppAlert()">OK</button>
         </div>
     </div>
-    
-    <!-- Cropper Modal -->
+
+    <!-- 5. CROP MODAL (FOTO PROFIL) -->
     <div id="cropModal" class="crop-modal" style="display: none;">
         <div class="crop-container">
             <h3>Sesuaikan Foto</h3>
-            <div class="img-container"><img id="imageToCrop" src=""></div>
+            <div class="img-container">
+                <img id="imageToCrop" src="">
+            </div>
             <div class="crop-actions">
                 <button class="btn-cancel" onclick="closeCropModal()">Batal</button>
                 <button class="btn-save" onclick="saveCropImage()">Simpan</button>
@@ -367,7 +519,9 @@
 
     <input type="file" id="fileInput" accept="image/*" style="display: none;">
     
+    <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="script.js"></script>
+
 </body>
 </html>
