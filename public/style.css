@@ -222,6 +222,8 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
     font-size: 12px;
     border: 2px solid #fff;
     cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 2;
 }
 
 /* Form Styling di Settings */
@@ -341,3 +343,85 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .detail-label { color: #888; }
 .detail-value { font-weight: bold; color: #333; }
 .level-badge { background: gold; color: #856404; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;}
+
+
+/* ============================================== */
+/* --- TAMBAHAN STYLE BARU (CROP & FITUR BARU) --- */
+/* ============================================== */
+
+/* --- CROPPER MODAL STYLES --- */
+.crop-modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); /* Background gelap transparan */
+    z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.crop-container {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    padding: 25px 20px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.crop-container h3 {
+    margin-bottom: 20px;
+    color: #205081;
+    font-size: 18px;
+}
+
+/* Wadah Gambar yang akan di-crop */
+.img-container {
+    max-height: 350px;
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    /* Pastikan gambar di dalam cropper responsif */
+}
+
+.img-container img {
+    max-width: 100%;
+    display: block; 
+}
+
+/* Tombol Aksi Crop */
+.crop-actions {
+    display: flex; justify-content: space-between; gap: 15px;
+}
+
+.btn-cancel, .btn-save {
+    flex: 1; 
+    padding: 12px; 
+    border: none; 
+    border-radius: 8px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.btn-cancel {
+    background: #e74c3c; 
+    color: white;
+}
+.btn-cancel:active { transform: scale(0.95); }
+
+.btn-save {
+    background: #205081; 
+    color: white;
+}
+.btn-save:active { transform: scale(0.95); }
+
+/* --- STYLE TAMBAHAN UNTUK DISPLAY FOTO PROFIL --- */
+/* Agar foto profil di navbar bawah selalu bulat sempurna dan tidak gepeng */
+.floating-circle img {
+    object-fit: cover;
+    border-radius: 50%;
+}
