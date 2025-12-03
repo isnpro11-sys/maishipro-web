@@ -9,36 +9,39 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Limit diperbesar untuk upload foto base64
 
 // 1. Koneksi Database
 let isConnected = false;
 const connectDB = async () => {
     if (isConnected) return;
     try {
-        // Pastikan MONGO_URI di .env sudah benar (tanpa port jika pakai SRV)
         await mongoose.connect(process.env.MONGO_URI);
         isConnected = true;
         console.log("DB Connected");
     } catch (err) {
         console.error("DB Error", err);
-        throw err; // Lempar error agar request tau kalau DB gagal
+        throw err;
     }
 };
 
 // 2. Models
 const UserSchema = new mongoose.Schema({
-    username: String,
+    username: { type: String, unique: true },
     email: { type: String, unique: true },
-    password: String, // Catatan: Sebaiknya di-hash (bcrypt) di production
-    phone: String
+    password: String,
+    phone: { type: String, unique: true },
+    profilePic: { type: String, default: "" }, // Foto Profil Base64/URL
+    role: { type: String, default: "Member" }, // Role default
+    sellerLevel: { type: String, default: "Newbie" }, // Penjual Level
+    createdAt: { type: Date, default: Date.now } // Tanggal Bergabung
 });
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
 const OtpSchema = new mongoose.Schema({
     email: String,
     code: String,
-    createdAt: { type: Date, expires: '5m', default: Date.now } // Expire 5 menit
+    createdAt: { type: Date, expires: '5m', default: Date.now }
 });
 const OTP = mongoose.models.OTP || mongoose.model('OTP', OtpSchema);
 
@@ -57,19 +60,33 @@ const transporter = nodemailer.createTransport({
 
 app.get('/api', (req, res) => res.send("Server is Running!"));
 
-// A. REQUEST OTP (Register & Forgot)
+// A. REQUEST OTP (Register & Forgot) dengan Validasi Duplikat Lengkap
 app.post('/api/request-otp', async (req, res) => {
     try {
         await connectDB();
-        const { email, type } = req.body;
+        const { email, type, username, phone } = req.body;
 
-        // Cek user jika konteksnya 'register' (tidak boleh duplikat)
+        // Cek user jika konteksnya 'register' (Cek Email, Username, DAN Phone)
         if (type === 'register') {
-            const exist = await User.findOne({ email });
-            if (exist) return res.status(400).json({ success: false, message: "Email sudah terdaftar!" });
+            // Cek apakah ada user dengan salah satu data yang sama
+            const exist = await User.findOne({
+                $or: [
+                    { email: email },
+                    { username: username },
+                    { phone: phone }
+                ]
+            });
+
+            if (exist) {
+                let msg = "Data sudah terdaftar!";
+                if (exist.email === email) msg = "Email sudah terdaftar!";
+                else if (exist.username === username) msg = "Username sudah digunakan!";
+                else if (exist.phone === phone) msg = "Nomor WhatsApp sudah terdaftar!";
+                
+                return res.status(400).json({ success: false, message: msg });
+            }
         }
 
-        // Cek user jika konteksnya 'forgot' (harus ada)
         if (type === 'forgot') {
             const exist = await User.findOne({ email });
             if (!exist) return res.status(400).json({ success: false, message: "Email tidak ditemukan!" });
@@ -77,10 +94,8 @@ app.post('/api/request-otp', async (req, res) => {
 
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         
-        // Simpan/Update OTP di Database
         await OTP.findOneAndUpdate({ email }, { code: otpCode }, { upsert: true });
 
-        // Kirim Email
         await transporter.sendMail({
             from: "Admin <" + process.env.SMTP_USER + ">",
             to: email,
@@ -95,22 +110,23 @@ app.post('/api/request-otp', async (req, res) => {
     }
 });
 
-// B. VERIFIKASI REGISTER (Simpan User)
+// B. VERIFIKASI REGISTER
 app.post('/api/register-verify', async (req, res) => {
     try {
         await connectDB();
         const { username, email, phone, password, otp } = req.body;
 
-        // 1. Cek OTP di Database
         const validOtp = await OTP.findOne({ email, code: otp });
         if (!validOtp) {
             return res.status(400).json({ success: false, message: "Kode OTP Salah atau Kadaluarsa!" });
         }
 
-        // 2. Simpan User Baru
-        const newUser = await User.create({ username, email, phone, password });
+        // Simpan User dengan timestamp otomatis
+        const newUser = await User.create({ 
+            username, email, phone, password,
+            createdAt: new Date() 
+        });
 
-        // 3. Hapus OTP agar tidak bisa dipakai lagi
         await OTP.deleteOne({ _id: validOtp._id });
 
         res.json({ success: true, message: "Pendaftaran Berhasil!" });
@@ -121,73 +137,73 @@ app.post('/api/register-verify', async (req, res) => {
     }
 });
 
-// C. CEK OTP SAJA (Untuk tahap awal Reset Password)
+// C. CEK OTP
 app.post('/api/check-otp', async (req, res) => {
     try {
         await connectDB();
         const { email, otp } = req.body;
-        
         const validOtp = await OTP.findOne({ email, code: otp });
-        if (!validOtp) {
-            return res.status(400).json({ success: false, message: "Kode OTP Salah!" });
-        }
-
+        if (!validOtp) return res.status(400).json({ success: false, message: "Kode OTP Salah!" });
         res.json({ success: true, message: "OTP Valid" });
     } catch (e) {
         res.status(500).json({ success: false, message: "Error Server" });
     }
 });
 
-// D. RESET PASSWORD FINAL
+// D. RESET PASSWORD
 app.post('/api/reset-password', async (req, res) => {
     try {
         await connectDB();
         const { email, otp, newPassword } = req.body;
-
-        // Validasi OTP lagi untuk keamanan ganda sebelum ganti password
         const validOtp = await OTP.findOne({ email, code: otp });
-        if (!validOtp) {
-            return res.status(400).json({ success: false, message: "Sesi OTP habis, ulangi permintaan." });
-        }
-
-        // Update Password
+        if (!validOtp) return res.status(400).json({ success: false, message: "Sesi OTP habis." });
+        
         await User.findOneAndUpdate({ email }, { password: newPassword });
-
-        // Hapus OTP
         await OTP.deleteOne({ _id: validOtp._id });
-
         res.json({ success: true, message: "Password berhasil diubah!" });
     } catch (e) {
         res.status(500).json({ success: false, message: "Gagal mereset password." });
     }
 });
 
-// E. LOGIN
+// E. LOGIN (Return data lengkap: join date, pic, level)
 app.post('/api/login', async (req, res) => {
     try {
         await connectDB();
         const { loginInput, password } = req.body;
 
-        // Cari user berdasarkan email ATAU username
         const user = await User.findOne({
             $or: [{ email: loginInput }, { username: loginInput }]
         });
 
-        if (!user) {
-            return res.status(400).json({ success: false, message: "User tidak ditemukan!" });
-        }
-
-        // Cek password (plain text match)
-        if (user.password !== password) {
-            return res.status(400).json({ success: false, message: "Password Salah!" });
-        }
+        if (!user) return res.status(400).json({ success: false, message: "User tidak ditemukan!" });
+        if (user.password !== password) return res.status(400).json({ success: false, message: "Password Salah!" });
 
         res.json({ 
             success: true, 
-            userData: { username: user.username, email: user.email } 
+            userData: { 
+                username: user.username, 
+                email: user.email, 
+                phone: user.phone,
+                profilePic: user.profilePic,
+                sellerLevel: user.sellerLevel,
+                createdAt: user.createdAt
+            } 
         });
     } catch (e) {
         res.status(500).json({ success: false, message: "Error Login" });
+    }
+});
+
+// F. UPDATE PROFILE PICTURE
+app.post('/api/update-pic', async (req, res) => {
+    try {
+        await connectDB();
+        const { email, imageBase64 } = req.body;
+        await User.findOneAndUpdate({ email }, { profilePic: imageBase64 });
+        res.json({ success: true, message: "Foto profil diperbarui!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Gagal update foto." });
     }
 });
 
