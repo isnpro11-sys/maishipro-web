@@ -21,17 +21,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     injectCustomElements();
     initializeDomElements();
 
-    await refreshUserData(); 
+    // 1. [PERUBAHAN] Jalankan Navigasi DULUAN agar tampilan langsung pindah sesuai URL
+    // Jangan biarkan user menunggu loading data untuk pindah tab.
+    handleUrlNavigation(); 
 
-    checkLoginState(); // Ini akan memanggil renderNavbar juga
-    
-    // Setup UI components
-    initDynamicUI();
+    // Setup UI components lainnya yang tidak butuh data user
     setupFileUploadListener();
     setupSliderSwipe();
+    
+    // 2. Baru setelah tampilan benar, kita ambil data user (Async)
+    await refreshUserData(); 
 
-    // BARU: Cek URL Parameter saat halaman selesai dimuat
-    handleUrlNavigation();
+    // 3. Update UI berdasarkan status login (navbar, foto profil, dll)
+    checkLoginState(); 
+    
+    // 4. Render kategori (bisa ditaruh di mana saja)
+    initDynamicUI();
 });
 
 /* ============================================== */
