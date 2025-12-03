@@ -10,14 +10,14 @@ let authMode = 'register';
 let currentEmail = ''; 
 let cropper = null; 
 
-/* DOM Elements Global (Akan di-init ulang saat DOMContentLoaded) */
+/* DOM Elements Global */
 let authOverlay, boxLogin, boxReg, boxOtp, boxForgot, boxChangePass, boxAdminEdit, boxVerification;
 
 /* ============================================== */
 /* --- INIT: SETUP AWAL --- */
 /* ============================================== */
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Inject Element Tambahan (Alert & Style) secara otomatis via JS
+    // 1. Inject Element Tambahan (Alert & Style)
     injectCustomElements();
 
     // 2. Inisialisasi DOM Elements
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkLoginState();
     setupFileUploadListener(); 
     setupSliderSwipe(); 
-    setupOtpInputHandler(); // Setup handler untuk input OTP baru
+    // setupOtpInputHandler(); // TIDAK PERLU DIPANGGIL LAGI KARENA SUDAH ADA DI HTML
 
     // 4. Routing Halaman
     const hash = window.location.hash.substring(1);
@@ -43,10 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
 /* --- SYSTEM: INJECT STYLE & ALERT (OTOMATIS) --- */
 /* ============================================== */
 function injectCustomElements() {
-    // A. Inject CSS untuk Alert & Loading & OTP Panjang
     const style = document.createElement('style');
     style.innerHTML = `
-        /* Custom Alert Style */
         .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); animation: fadeIn 0.2s; }
         .custom-alert-box { background: #fff; width: 300px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
         .custom-alert-header { background: #205081; color: white; padding: 12px 15px; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
@@ -56,31 +54,9 @@ function injectCustomElements() {
         .btn-alert-ok { width: 100%; padding: 12px; border: none; background: #f8fafc; color: #205081; font-weight: bold; cursor: pointer; border-top: 1px solid #eee; transition: 0.2s; }
         .btn-alert-ok:hover { background: #e0f2fe; }
         @keyframes popUp { to { transform: scale(1); } }
-        
-        /* Loading Button Style */
         .btn-loading { pointer-events: none; opacity: 0.7; background: #555 !important; }
-
-        /* Input OTP Panjang Style */
-        .otp-long-input { width: 100%; padding: 15px; font-size: 24px; text-align: center; letter-spacing: 10px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 20px; outline: none; font-weight: bold; background: #fcfcfc; transition: 0.3s; }
-        .otp-long-input:focus { border-color: #205081; background: #fff; box-shadow: 0 4px 15px rgba(32, 80, 129, 0.1); }
     `;
     document.head.appendChild(style);
-
-    // B. Inject HTML Alert Box
-    const alertHtml = `
-    <div id="customAlertModal" class="custom-alert-overlay">
-        <div class="custom-alert-box">
-            <div class="custom-alert-header">
-                <i class="fas fa-cube"></i> Maishipro
-            </div>
-            <div class="custom-alert-body">
-                <h4 id="customAlertTitle">Notifikasi</h4>
-                <p id="customAlertMsg">Pesan...</p>
-            </div>
-            <button class="btn-alert-ok" onclick="closeAppAlert()">OK / TUTUP</button>
-        </div>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend', alertHtml);
 }
 
 function initializeDomElements() {
@@ -97,7 +73,6 @@ function initializeDomElements() {
 /* ============================================== */
 /* --- HELPER FUNCTIONS --- */
 /* ============================================== */
-// Ganti Alert Browser dengan Custom Alert
 function showAlert(message, title = "Info") {
     document.getElementById('customAlertTitle').innerText = title;
     document.getElementById('customAlertMsg').innerText = message;
@@ -133,31 +108,22 @@ function formatDate(dateString) {
 }
 
 /* ============================================== */
-/* --- OTP HANDLING (AUTO SUBMIT & LONG INPUT) --- */
+/* --- OTP HANDLING (PERBAIKAN UTAMA) --- */
 /* ============================================== */
-function setupOtpInputHandler() {
-    // Kita ubah isi HTML otpBox agar menggunakan 1 input panjang
-    if(boxOtp) {
-        const otpContainer = boxOtp.querySelector('.otp-container');
-        if(otpContainer) {
-            // Ganti 6 kotak kecil dengan 1 kotak panjang
-            otpContainer.innerHTML = `
-                <input type="number" id="otpLongInput" class="otp-long-input" placeholder="------" oninput="handleOtpTyping(this)">
-            `;
-            // Hapus class container grid agar input panjang full width
-            otpContainer.style.display = 'block';
-        }
-    }
-}
 
-function handleOtpTyping(el) {
-    const val = el.value;
-    // Batasi 6 karakter
-    if(val.length > 6) el.value = val.slice(0, 6);
+// 1. Fungsi ini dipanggil dari HTML oninput="checkAutoSubmitOtp(this)"
+function checkAutoSubmitOtp(el) {
+    const val = el.value.toString();
+    
+    // Batasi input maksimal 6 karakter
+    if(val.length > 6) {
+        el.value = val.slice(0, 6);
+    }
     
     // Auto Submit jika sudah 6 karakter
     if(el.value.length === 6) {
-        handleVerifyOtp();
+        el.blur(); // Hilangkan keyboard (opsional)
+        handleVerifyOtp(); // Panggil fungsi verifikasi
     }
 }
 
@@ -189,9 +155,9 @@ function switchAuth(type) {
     } 
     else if(type === 'otp') { 
         boxOtp.style.display = 'block'; 
-        // Focus ke input OTP
+        // Focus ke input OTP (ID SUDAH DIPERBAIKI: otpInputLong)
         setTimeout(() => {
-            const input = document.getElementById('otpLongInput');
+            const input = document.getElementById('otpInputLong');
             if(input) { input.value = ''; input.focus(); }
         }, 100);
     } 
@@ -232,10 +198,9 @@ async function handleRegisterRequest(e) {
             switchAuth('otp');
             document.getElementById('otpTextEmail').innerText = `Cek email: ${email}`;
         } else {
-            // Handle error duplikat
             let errMsg = data.message;
-            if (errMsg.includes("duplicate")) errMsg = "Username atau Email sudah terdaftar!";
-            showAlert(errMsg, "Gagal Daftar");
+            if (errMsg && errMsg.includes("duplicate")) errMsg = "Username atau Email sudah terdaftar!";
+            showAlert(errMsg || "Gagal Request OTP", "Gagal Daftar");
         }
     } catch(e){
         showAlert("Gagal menghubungi server.", "Koneksi Error");
@@ -244,13 +209,16 @@ async function handleRegisterRequest(e) {
     }
 }
 
-/* --- VERIFY OTP & AUTO LOGIN --- */
+/* --- VERIFY OTP & AUTO LOGIN (SUDAH DIPERBAIKI) --- */
 async function handleVerifyOtp() {
-    // Ambil value dari input panjang
-    const inputLong = document.getElementById('otpLongInput');
+    // FIX: Mengambil ID yang sesuai dengan di HTML (otpInputLong)
+    const inputLong = document.getElementById('otpInputLong');
     let otp = inputLong ? inputLong.value : '';
 
-    if (!otp || otp.length < 6) return showAlert("Masukkan 6 digit kode OTP!", "Peringatan");
+    // Validasi panjang OTP
+    if (!otp || otp.toString().length < 6) {
+        return showAlert("Masukkan 6 digit kode OTP!", "Peringatan");
+    }
 
     setLoading('btnVerifyBtn', true, "VERIFIKASI");
 
@@ -324,7 +292,6 @@ async function handleLogin(e) {
             checkLoginState();
             switchMainTab(isAdmin(data.userData.email) ? 'admin' : 'home');
             
-            // Alert Kotak Putih Biru (Bukan alert biasa)
             showAlert("Berhasil masuk ke akun Anda.", "Login Sukses");
         } else {
             showAlert(data.message || "Username atau Password Salah!", "Login Gagal");
@@ -337,15 +304,13 @@ async function handleLogin(e) {
 }
 
 /* ============================================== */
-/* --- CHANGE PASSWORD (FIX BERTUMPUK) --- */
+/* --- CHANGE PASSWORD --- */
 /* ============================================== */
 function openChangePassModal() {
-    closeAuthModal(); // Tutup modal lain dulu
-    
+    closeAuthModal(); 
     setTimeout(() => {
         authOverlay.classList.add('active'); 
         boxChangePass.style.display = 'block'; 
-        // Pastikan z-index modal change pass tinggi
         boxChangePass.style.zIndex = '2001';
     }, 150);
 }
@@ -401,6 +366,7 @@ function switchMainTab(tabName) {
         const firstMenu = document.querySelector('.admin-menu-item'); 
         if(firstMenu) loadAdminTab('users', firstMenu);
     }
+    // Update URL tanpa reload
     history.pushState("", document.title, window.location.pathname + window.location.search);
 }
 
