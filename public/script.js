@@ -16,27 +16,15 @@ let authOverlay, boxLogin, boxReg, boxOtp, boxForgot, boxChangePass, boxAdminEdi
 /* ============================================== */
 /* --- INIT: SETUP AWAL --- */
 /* ============================================== */
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Inject Element Tambahan (Alert & Style)
+document.addEventListener("DOMContentLoaded", async () => {
     injectCustomElements();
-
-    // 2. Inisialisasi DOM Elements
     initializeDomElements();
 
-    // 3. Setup Listeners
-    checkLoginState();
-    setupFileUploadListener(); 
-    setupSliderSwipe(); 
-    // setupOtpInputHandler(); // TIDAK PERLU DIPANGGIL LAGI KARENA SUDAH ADA DI HTML
+    await refreshUserData(); // <<<<< TAMBAHKAN INI
 
-    // 4. Routing Halaman
-    const hash = window.location.hash.substring(1);
-    if (hash && hash !== "") {
-        renderPage(hash, null);
-    } else {
-        const savedTab = localStorage.getItem('activeTab') || 'home';
-        switchMainTab(savedTab);
-    }
+    checkLoginState();
+    setupFileUploadListener();
+    setupSliderSwipe();
 });
 
 /* ============================================== */
@@ -206,6 +194,26 @@ async function handleRegisterRequest(e) {
         showAlert("Gagal menghubungi server.", "Koneksi Error");
     } finally {
         setLoading('btnRegBtn', false, "DAFTAR");
+    }
+}
+
+async function refreshUserData() {
+    const local = JSON.parse(localStorage.getItem("user"));
+    if (!local) return;
+
+    try {
+        const res = await fetch(`${API_URL}/get-user`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email: local.email })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            localStorage.setItem("user", JSON.stringify(data.userData));
+        }
+    } catch (e) {
+        console.error("Gagal refresh user:", e);
     }
 }
 
