@@ -84,11 +84,75 @@ app.post('/api/request-otp', async (req, res) => {
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         await OTP.findOneAndUpdate({ email }, { code: otpCode }, { upsert: true });
 
+        // --- DESAIN EMAIL HTML ---
+        const emailTemplate = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body { font-family: 'Helvetica', 'Arial', sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+                .container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+                .header { background-color: #2563EB; padding: 20px; text-align: center; color: white; }
+                .content { padding: 30px 20px; text-align: center; color: #333333; }
+                .otp-box { 
+                    background-color: #f3f4f6; 
+                    border: 2px dashed #2563EB; 
+                    border-radius: 8px; 
+                    padding: 15px; 
+                    margin: 20px auto; 
+                    width: fit-content;
+                    min-width: 150px;
+                }
+                .otp-code { 
+                    font-size: 32px; 
+                    font-weight: bold; 
+                    letter-spacing: 5px; 
+                    color: #1f2937; 
+                    display: block;
+                }
+                .footer { background-color: #f9fafb; padding: 15px; text-align: center; font-size: 12px; color: #6b7280; }
+                .note { font-size: 14px; color: #666; margin-top: 10px; }
+            </style>
+        </head>
+        <body>
+            <div style="padding: 20px;">
+                <div class="container">
+                    <div class="header">
+                        <h2 style="margin:0;">Maishipro</h2>
+                    </div>
+                    
+                    <div class="content">
+                        <h3 style="margin-top: 0;">Verifikasi Akun Anda</h3>
+                        <p>Halo,</p>
+                        <p>Kami menerima permintaan kode OTP untuk akun Anda. Gunakan kode di bawah ini untuk melanjutkan:</p>
+                        
+                        <div class="otp-box">
+                            <span class="otp-code">${otpCode}</span>
+                        </div>
+                        
+                        <p class="note">Tekan lama kode di atas untuk menyalin.</p>
+                        
+                        <p style="margin-top: 30px; font-size: 13px; color: #888;">
+                            Kode ini akan kadaluarsa dalam 5 menit.<br>
+                            Jika Anda tidak meminta kode ini, abaikan email ini.
+                        </p>
+                    </div>
+
+                    <div class="footer">
+                        &copy; ${new Date().getFullYear()} Maishipro Website. All rights reserved.
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        `;
+
         await transporter.sendMail({
-            from: "Admin <" + process.env.SMTP_USER + ">",
+            from: "Maisshipro Website <" + process.env.SMTP_USER + ">",
             to: email,
-            subject: "Kode OTP Maishipro",
-            html: `<h3>Kode OTP: <b>${otpCode}</b></h3>`
+            subject: `Kode OTP Anda: ${otpCode} - Maishipro`,
+            html: emailTemplate
         });
 
         res.json({ success: true, message: "OTP Terkirim." });
