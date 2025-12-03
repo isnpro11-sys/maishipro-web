@@ -425,3 +425,113 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
     object-fit: cover;
     border-radius: 50%;
 }
+/* ============================================== */
+/* --- ADMIN DASHBOARD STYLES --- */
+/* ============================================== */
+
+/* Navbar Item Admin (Icon A) */
+.fa-font { font-size: 18px; margin-bottom: 4px; } 
+
+/* Grid Menu Admin (4 Tombol Atas) */
+.admin-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 15px;
+    background: #fff;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.admin-menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 10px 5px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #475569;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: center;
+}
+
+.admin-menu-item.active {
+    background: #205081;
+    color: white;
+    border-color: #205081;
+}
+
+.admin-menu-item i {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+/* User List Card Style */
+.admin-user-list {
+    padding: 0 15px 80px 15px; /* Padding bawah agar tidak ketutup navbar */
+}
+
+.user-card-admin {
+    background: #fff;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.user-card-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+    border-bottom: 1px dashed #f0f0f0;
+    padding-bottom: 5px;
+}
+.user-card-row:last-child { border-bottom: none; margin-bottom: 0; }
+
+.u-label { color: #888; font-size: 12px; }
+.u-value { font-weight: bold; color: #333; word-break: break-all; text-align: right; max-width: 65%; }
+
+.admin-card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 2px solid #f5f5f5;
+}
+
+.btn-admin-action {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.btn-edit-user { background: #ffeb3b; color: #205081; }
+.btn-del-user { background: #ffebeb; color: #e74c3c; }
+
+/* Badge Admin Profile */
+.badge-admin-website {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(231, 76, 60, 0.4);
+    letter-spacing: 0.5px;
+}
