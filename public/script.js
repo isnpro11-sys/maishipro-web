@@ -1,26 +1,29 @@
 /* ============================================== */
-/* --- KONFIGURASI BACKEND --- */
+/* --- KONFIGURASI BACKEND (WAJIB JALAN) --- */
 /* ============================================== */
 const API_URL = "/api"; 
 const ADMIN_EMAILS = ["ilyassyuhada00@gmail.com", "admin@gmail.com"]; 
 
 /* ============================================== */
-/* --- KONFIGURASI DATA --- */
+/* --- KONFIGURASI DATA TAMPILAN (PARAMETER BARU) --- */
 /* ============================================== */
 
-// NAV_MENU: Hapus menu 'admin' dari sini agar tidak muncul di User UI
+// 1. DATA NAVBAR
 const NAV_MENU = [
     { id: 'home', icon: 'fa-home', label: 'Home' },
     { id: 'transaksi', icon: 'fa-exchange-alt', label: 'Transaksi' },
-    { id: 'profile', type: 'profile', label: 'Profile' },
+    { id: 'admin', icon: 'fa-font', label: 'Admin', role: 'admin' }, // Hanya muncul jika admin
+    { id: 'profile', type: 'profile', label: 'Profile' }, // Tipe khusus (lingkaran foto)
     { id: 'produk', icon: 'fa-shopping-basket', label: 'Produk' },
     { id: 'pengaturan', icon: 'fa-cog', label: 'Pengaturan' }
 ];
 
-// DATA KATEGORI (Digunakan juga untuk Mapping URL Parameter)
+// 2. DATA KATEGORI GAME (HOME PAGE)
 const HOME_CATEGORIES = [
     {
-        title: "Akun Game", icon: "fa-user-circle", colorClass: "icon-akun",
+        title: "Akun Game",
+        icon: "fa-user-circle",
+        colorClass: "icon-akun",
         items: [
             { id: 'akun-roblox', name: 'Roblox', img: 'https://api.deline.web.id/zQxSf6aiv7.jpg' },
             { id: 'akun-ml', name: 'Mobile Legends', img: 'https://api.deline.web.id/u8m7Yq2Pdu.jpg' },
@@ -30,7 +33,9 @@ const HOME_CATEGORIES = [
         ]
     },
     {
-        title: "Top Up Game", icon: "fa-gem", colorClass: "icon-topup",
+        title: "Top Up Game",
+        icon: "fa-gem",
+        colorClass: "icon-topup",
         items: [
             { id: 'topup-ml', name: 'Mobile Legends', img: 'https://api.deline.web.id/u8m7Yq2Pdu.jpg' },
             { id: 'topup-ff', name: 'Free Fire', img: 'https://api.deline.web.id/BqQnrJVNPO.jpg' },
@@ -39,11 +44,25 @@ const HOME_CATEGORIES = [
         ]
     },
     {
-        title: "Lainnya", icon: "fa-layer-group", colorClass: "icon-lainnya",
+        title: "Joki Game",
+        icon: "fa-gamepad",
+        colorClass: "icon-joki",
+        items: [
+            { id: 'joki-ml', name: 'Joki MLBB', img: 'https://api.deline.web.id/u8m7Yq2Pdu.jpg' },
+            { id: 'joki-ff', name: 'Joki FF', img: 'https://api.deline.web.id/BqQnrJVNPO.jpg' },
+            { id: 'joki-roblox', name: 'Joki Roblox', img: 'https://api.deline.web.id/zQxSf6aiv7.jpg' }
+        ]
+    },
+    {
+        title: "Lainnya",
+        icon: "fa-layer-group",
+        colorClass: "icon-lainnya",
         items: [
             { id: 'sewa-bot', name: 'Sewa Bot', img: 'https://api.deline.web.id/8ASC30F6zj.jpg' },
             { id: 'script', name: 'Script', img: 'https://api.deline.web.id/kP9sQzd1TU.jpg' },
-            { id: 'joki-ml', name: 'Joki MLBB', img: 'https://api.deline.web.id/u8m7Yq2Pdu.jpg' }
+            { id: 'apk-premium', name: 'Apk Premium', img: 'https://api.deline.web.id/Lunp2IR8bG.jpg' },
+            { id: 'jasa-web', name: 'Jasa Web', img: 'https://api.deline.web.id/OWtCG5ldGU.jpg' },
+            { id: 'pulsa', name: 'Pulsa', img: 'https://api.deline.web.id/MH25SGMbc9.jpg' }
         ]
     }
 ];
@@ -51,8 +70,8 @@ const HOME_CATEGORIES = [
 /* --- VARIABLES --- */
 let tempRegisterData = {}; 
 let authMode = 'register'; 
+let currentEmail = ''; 
 let cropper = null; 
-let isAdminMode = false;
 
 /* DOM Elements Global */
 let authOverlay, boxLogin, boxReg, boxOtp, boxForgot, boxChangePass, boxAdminEdit, boxVerification;
@@ -63,115 +82,34 @@ let authOverlay, boxLogin, boxReg, boxOtp, boxForgot, boxChangePass, boxAdminEdi
 document.addEventListener("DOMContentLoaded", async () => {
     injectCustomElements();
     initializeDomElements();
+
+    // --- BARU: Render UI dari Parameter ---
     initDynamicUI();
-    
+    // -------------------------------------
+
     await refreshUserData(); 
+
     checkLoginState();
     setupFileUploadListener();
     setupSliderSwipe();
-
-    // --- PENTING: Jalankan Routing URL Parameter Terakhir ---
-    handleUrlRouting(); 
 });
 
 /* ============================================== */
-/* --- 1. HANDLE URL PARAMETER (?p=...) --- */
-/* ============================================== */
-function handleUrlRouting() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const p = urlParams.get('p'); // Ambil value dari ?p=
-
-    if (!p) return; // Jika tidak ada parameter, biarkan default
-
-    // Cek apakah parameter adalah Tab Utama
-    const mainTabs = ['home', 'transaksi', 'profile', 'produk', 'pengaturan'];
-    if (mainTabs.includes(p)) {
-        switchMainTab(p);
-        return;
-    }
-
-    // Cek apakah parameter adalah Halaman Admin
-    if (p === 'admin') {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && isAdmin(user.email)) {
-            enableAdminMode();
-        } else {
-            showAlert("Anda bukan Admin", "Akses Ditolak");
-            switchMainTab('home');
-        }
-        return;
-    }
-
-    // Cek apakah parameter adalah Item/Produk (Topup, Akun, dll)
-    let foundItem = null;
-    HOME_CATEGORIES.forEach(cat => {
-        const item = cat.items.find(i => i.id === p);
-        if (item) foundItem = item;
-    });
-
-    if (foundItem) {
-        goToPage(foundItem.id, foundItem.name);
-    } else {
-        // Fallback jika ID halaman tidak ditemukan tapi ada parameter
-        goToPage(p, 'Detail Produk'); 
-    }
-}
-
-/* ============================================== */
-/* --- 2. ADMIN & USER SEPARATION LOGIC --- */
-/* ============================================== */
-
-function isAdmin(email) { return ADMIN_EMAILS.includes(email); }
-
-// Fungsi untuk masuk ke Tampilan Admin (Terpisah)
-function enableAdminMode() {
-    isAdminMode = true;
-    document.body.classList.add('admin-view-active'); // CSS class untuk hide navbar user
-    
-    // Hide semua section user
-    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-    
-    // Show section admin
-    const adminPage = document.getElementById('admin-page');
-    if(adminPage) adminPage.classList.add('active');
-
-    // Load tab pertama admin
-    const firstMenu = document.querySelector('.admin-menu-item');
-    if(firstMenu) loadAdminTab('users', firstMenu);
-
-    // Tambahkan tombol keluar dari mode admin di header admin
-    const adminHeader = document.querySelector('#admin-page .top-bar');
-    if (adminHeader && !document.getElementById('btnExitAdmin')) {
-        adminHeader.innerHTML += `<button id="btnExitAdmin" onclick="disableAdminMode()" style="background:#e74c3c; border:none; color:white; padding:5px 10px; border-radius:5px; font-size:12px; margin-left:auto;">Keluar Admin</button>`;
-    }
-}
-
-// Fungsi kembali ke Tampilan User
-function disableAdminMode() {
-    isAdminMode = false;
-    document.body.classList.remove('admin-view-active');
-    switchMainTab('home');
-}
-
-/* ============================================== */
-/* --- SYSTEM: INJECT STYLE & ALERT --- */
+/* --- SYSTEM: INJECT STYLE & ALERT (OTOMATIS) --- */
 /* ============================================== */
 function injectCustomElements() {
     const style = document.createElement('style');
     style.innerHTML = `
-        /* CSS KHUSUS ADMIN MODE */
-        body.admin-view-active .bottom-navbar { display: none !important; } /* Hilangkan navbar bawah saat admin */
-        body.admin-view-active .page-section { padding-bottom: 0 !important; }
-        
-        /* Alert & Loading Styles */
         .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); animation: fadeIn 0.2s; }
         .custom-alert-box { background: #fff; width: 300px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
         .custom-alert-header { background: #205081; color: white; padding: 12px 15px; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
         .custom-alert-body { padding: 25px 20px; text-align: center; color: #333; }
+        .custom-alert-body h4 { color: #205081; margin-bottom: 8px; font-size: 16px; }
+        .custom-alert-body p { font-size: 13px; line-height: 1.5; color: #555; margin: 0; }
         .btn-alert-ok { width: 100%; padding: 12px; border: none; background: #f8fafc; color: #205081; font-weight: bold; cursor: pointer; border-top: 1px solid #eee; transition: 0.2s; }
         .btn-alert-ok:hover { background: #e0f2fe; }
         @keyframes popUp { to { transform: scale(1); } }
-        .btn-loading { pointer-events: none; opacity: 0.7; }
+        .btn-loading { pointer-events: none; opacity: 0.7; background: #555 !important; }
     `;
     document.head.appendChild(style);
 }
@@ -187,17 +125,12 @@ function initializeDomElements() {
     boxVerification = document.getElementById('verificationModal');
 }
 
-/* --- FUNGSI RENDER TAMPILAN (VISUAL) --- */
-
+/* ============================================== */
+/* --- FUNGSI RENDER DINAMIS (BARU) --- */
+/* ============================================== */
 function initDynamicUI() {
-    // 1. Render Kategori Game (User View)
     renderHomeCategories();
-    
-    // 2. Render Navbar Bawah (User View)
-    // Cek apakah sedang mode admin? Jika iya, jangan render navbar
-    if (!isAdminMode) {
-        renderNavbar();
-    }
+    renderNavbar(); // Navbar akan dirender awal, nanti diupdate lagi saat login check
 }
 
 function renderHomeCategories() {
@@ -205,97 +138,62 @@ function renderHomeCategories() {
     if (!container) return;
 
     let html = '';
-
-    // Loop data dari HOME_CATEGORIES (Parameter)
     HOME_CATEGORIES.forEach(cat => {
-        // A. Buat Header Kategori (Judul & Icon)
-        html += `
-        <div class="category-card">
-            <div class="category-header">
-                <i class="fas ${cat.icon} ${cat.colorClass}"></i> ${cat.title}
-            </div>
-            <div class="cat-grid">`;
-        
-        // B. Buat Item Game (Looping Items)
+        let itemsHtml = '';
         cat.items.forEach(item => {
-            html += `
+            itemsHtml += `
                 <div class="cat-item" onclick="goToPage('${item.id}', '${item.name}')">
                     <img src="${item.img}" class="cat-img" alt="${item.name}">
                     <div class="cat-name">${item.name}</div>
                 </div>`;
         });
 
-        // C. Tutup Div
         html += `
+        <div class="category-card">
+            <div class="category-header">
+                <i class="fas ${cat.icon} ${cat.colorClass}"></i> ${cat.title}
             </div>
+            <div class="cat-grid">${itemsHtml}</div>
         </div>`;
     });
-
     container.innerHTML = html;
-}
-
-/* --- LOGIKA PINDAH MODE USER <-> ADMIN --- */
-
-// Masuk ke Mode Host/Admin
-function enableAdminMode() {
-    isAdminMode = true;
-    
-    // Tambahkan class CSS khusus ke body untuk memicu perubahan tampilan
-    document.body.classList.add('admin-view-active'); 
-    
-    // Render ulang navbar (agar hilang)
-    renderNavbar(); 
-
-    // Paksa pindah ke halaman admin
-    const adminPage = document.getElementById('admin-page');
-    if(adminPage) adminPage.classList.add('active');
-
-    // Load tab default admin
-    loadAdminTab('users', document.querySelector('.admin-menu-item'));
-}
-
-// Kembali ke Mode User
-function disableAdminMode() {
-    isAdminMode = false;
-    
-    // Hapus class CSS admin
-    document.body.classList.remove('admin-view-active');
-    
-    // Render ulang navbar (agar muncul kembali)
-    renderNavbar();
-    
-    // Kembali ke home user
-    switchMainTab('home');
 }
 
 function renderNavbar() {
     const navContainer = document.querySelector('.bottom-navbar');
     if (!navContainer) return;
-    
-    // Jangan render navbar jika sedang mode admin
-    if (isAdminMode) {
-        navContainer.style.display = 'none';
-        return;
-    } else {
-        navContainer.style.display = 'flex';
-    }
 
     const user = JSON.parse(localStorage.getItem('user'));
+    const isOwner = user ? isAdmin(user.email) : false;
     const activeTab = localStorage.getItem('activeTab') || 'home';
 
     let html = '';
     NAV_MENU.forEach(item => {
+        // Skip menu admin jika bukan admin
+        if (item.role === 'admin' && !isOwner) return;
+
         const isActive = activeTab === item.id ? 'active' : '';
+
         if (item.type === 'profile') {
-            let imgContent = `<img src="https://api.deline.web.id/76NssFHmcI.png">`; 
+            // Logic foto profil
+            let imgContent = `<img src="https://api.deline.web.id/76NssFHmcI.png">`; // Default
             if (user && user.profilePic) {
                 imgContent = `<img src="${user.profilePic}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
             } else if (user && user.username) {
                 imgContent = `<div style="width:100%; height:100%; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#205081; font-weight:bold; font-size:16px;">${user.username.charAt(0).toUpperCase()}</div>`;
             }
-            html += `<div class="nav-item center-item ${isActive}" id="nav-${item.id}" onclick="switchMainTab('${item.id}')"><div class="floating-circle">${imgContent}</div><span>${item.label}</span></div>`;
+
+            html += `
+            <div class="nav-item center-item ${isActive}" id="nav-${item.id}" onclick="switchMainTab('${item.id}')">
+                <div class="floating-circle">${imgContent}</div>
+                <span>${item.label}</span>
+            </div>`;
         } else {
-            html += `<div class="nav-item ${isActive}" id="nav-${item.id}" onclick="switchMainTab('${item.id}')"><i class="fas ${item.icon}"></i><span>${item.label}</span></div>`;
+            html += `
+            <div class="nav-item ${isActive}" id="nav-${item.id}" onclick="switchMainTab('${item.id}')">
+                <i class="fas ${item.icon}"></i>
+                <span>${item.label}</span>
+            </div>`;
         }
     });
     navContainer.innerHTML = html;
@@ -309,50 +207,87 @@ function showAlert(message, title = "Info") {
     document.getElementById('customAlertMsg').innerText = message;
     document.getElementById('customAlertModal').style.display = 'flex';
 }
-function closeAppAlert() { document.getElementById('customAlertModal').style.display = 'none'; }
+
+function closeAppAlert() {
+    document.getElementById('customAlertModal').style.display = 'none';
+}
+
 function setLoading(btnId, isLoading, defaultText) {
     const btn = document.getElementById(btnId);
     if (!btn) return;
+    
     if (isLoading) {
-        btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Loading...`;
+        btn.dataset.originalText = defaultText;
+        btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Memproses...`;
         btn.classList.add('btn-loading');
     } else {
-        btn.innerHTML = defaultText;
+        btn.innerText = defaultText;
         btn.classList.remove('btn-loading');
     }
 }
+
+function isAdmin(email) { return ADMIN_EMAILS.includes(email); }
+
 function formatDate(dateString) {
     if(!dateString) return "-";
-    try { return new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return dateString; }
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+    } catch (e) { return dateString; }
 }
 
 /* ============================================== */
-/* --- AUTH FLOW (Login, Register, OTP) --- */
+/* --- OTP HANDLING --- */
+/* ============================================== */
+function checkAutoSubmitOtp(el) {
+    const val = el.value.toString();
+    if(val.length > 6) { el.value = val.slice(0, 6); }
+    if(el.value.length === 6) {
+        el.blur(); 
+        handleVerifyOtp(); 
+    }
+}
+
+/* ============================================== */
+/* --- AUTHENTICATION FLOW --- */
 /* ============================================== */
 function openAuthModal(type) {
     authOverlay.classList.add('active');
     document.body.classList.add('lock-scroll');
     switchAuth(type);
 }
+
 function closeAuthModal() {
     authOverlay.classList.remove('active');
     document.body.classList.remove('lock-scroll');
     document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
 }
+
 function switchAuth(type) {
     document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
-    if(type === 'login') boxLogin.style.display = 'block';
-    else if(type === 'register') { boxReg.style.display = 'block'; authMode = 'register'; }
-    else if(type === 'otp') { boxOtp.style.display = 'block'; }
-    else if(type === 'forgot') { if(boxForgot) boxForgot.style.display = 'block'; }
+    if(type === 'login') {
+        boxLogin.style.display = 'block';
+    } else if(type === 'register') { 
+        boxReg.style.display = 'block'; 
+        authMode = 'register'; 
+    } else if(type === 'otp') { 
+        boxOtp.style.display = 'block'; 
+        setTimeout(() => {
+            const input = document.getElementById('otpInputLong');
+            if(input) { input.value = ''; input.focus(); }
+        }, 100);
+    } else if(type === 'forgot') {
+        if(boxForgot) boxForgot.style.display = 'block';
+    }
 }
+
 function togglePass(id, icon) {
     const input = document.getElementById(id);
     input.type = input.type === 'password' ? 'text' : 'password';
     icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
 }
 
-// REGISTER
+/* --- REGISTER --- */
 async function handleRegisterRequest(e) {
     e.preventDefault();
     const username = document.getElementById('regUser').value;
@@ -362,6 +297,7 @@ async function handleRegisterRequest(e) {
     const confirm = document.getElementById('regConfirmPass').value;
 
     if(password !== confirm) return showAlert("Konfirmasi Password tidak cocok!", "Error");
+
     setLoading('btnRegBtn', true, "DAFTAR");
     tempRegisterData = { username, email, phone, password };
 
@@ -371,22 +307,109 @@ async function handleRegisterRequest(e) {
             body: JSON.stringify({ email, username, phone, type: 'register' })
         });
         const data = await res.json();
+
         if(data.success) {
-            showAlert(`Kode OTP dikirim ke ${email}`, "Berhasil");
+            showAlert(`Kode OTP telah dikirim ke ${email}`, "Berhasil");
             switchAuth('otp');
             document.getElementById('otpTextEmail').innerText = `Cek email: ${email}`;
         } else {
-            showAlert(data.message || "Gagal Request OTP", "Gagal Daftar");
+            let errMsg = data.message;
+            if (errMsg && errMsg.includes("duplicate")) errMsg = "Username atau Email sudah terdaftar!";
+            showAlert(errMsg || "Gagal Request OTP", "Gagal Daftar");
         }
-    } catch(e){ showAlert("Gagal menghubungi server.", "Koneksi Error"); } 
-    finally { setLoading('btnRegBtn', false, "DAFTAR"); }
+    } catch(e){
+        showAlert("Gagal menghubungi server.", "Koneksi Error");
+    } finally {
+        setLoading('btnRegBtn', false, "DAFTAR");
+    }
 }
 
-// LOGIN
+async function refreshUserData() {
+    const local = JSON.parse(localStorage.getItem("user"));
+    if (!local) return;
+
+    try {
+        const res = await fetch(`${API_URL}/get-user`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email: local.email })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            localStorage.setItem("user", JSON.stringify(data.userData));
+            renderNavbar(); // Refresh navbar image
+        }
+    } catch (e) {
+        console.error("Gagal refresh user:", e);
+    }
+}
+
+/* --- VERIFY OTP & AUTO LOGIN --- */
+async function handleVerifyOtp() {
+    const inputLong = document.getElementById('otpInputLong');
+    let otp = inputLong ? inputLong.value : '';
+
+    if (!otp || otp.toString().length < 6) {
+        return showAlert("Masukkan 6 digit kode OTP!", "Peringatan");
+    }
+
+    setLoading('btnVerifyBtn', true, "VERIFIKASI");
+
+    try {
+        const res = await fetch(`${API_URL}/register-verify`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({...tempRegisterData, otp})
+        });
+        const data = await res.json();
+
+        if(data.success) {
+            await performAutoLogin(tempRegisterData.username, tempRegisterData.password);
+        } else {
+            showAlert("Kode OTP Salah atau Kadaluarsa.", "Gagal");
+            setLoading('btnVerifyBtn', false, "VERIFIKASI");
+            if(inputLong) inputLong.value = '';
+        }
+    } catch(e){
+        showAlert("Terjadi kesalahan sistem.", "Error");
+        setLoading('btnVerifyBtn', false, "VERIFIKASI");
+    }
+}
+
+async function performAutoLogin(loginInput, password) {
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({loginInput, password})
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+            closeAuthModal();
+            localStorage.setItem('user', JSON.stringify(data.userData));
+            checkLoginState();
+            
+            const isAdminUser = isAdmin(data.userData.email);
+            switchMainTab(isAdminUser ? 'admin' : 'home');
+            
+            showAlert(`Selamat datang, ${data.userData.username}!`, "Login Sukses");
+        } else {
+            showAlert("Pendaftaran sukses, silakan login manual.", "Info");
+            switchAuth('login');
+        }
+    } catch(e) {
+        switchAuth('login');
+    } finally {
+        setLoading('btnVerifyBtn', false, "VERIFIKASI");
+    }
+}
+
+/* --- LOGIN --- */
 async function handleLogin(e) {
     e.preventDefault();
     const loginInput = document.getElementById('loginInput').value;
     const password = document.getElementById('loginPass').value;
+    
     setLoading('btnLoginBtn', true, "LOGIN");
 
     try {
@@ -398,76 +421,68 @@ async function handleLogin(e) {
         if(data.success) {
             closeAuthModal();
             localStorage.setItem('user', JSON.stringify(data.userData));
+            checkLoginState();
+            switchMainTab(isAdmin(data.userData.email) ? 'admin' : 'home');
             
-            // Cek apakah admin
-            if(isAdmin(data.userData.email)) {
-                enableAdminMode();
-                showAlert("Selamat Datang Admin", "Login Sukses");
-            } else {
-                checkLoginState();
-                switchMainTab('home');
-                showAlert("Berhasil Login", "Sukses");
-            }
+            showAlert("Berhasil masuk ke akun Anda.", "Login Sukses");
         } else {
-            showAlert(data.message || "Username/Password Salah!", "Login Gagal");
+            showAlert(data.message || "Username atau Password Salah!", "Login Gagal");
         }
-    } catch(e){ showAlert("Tidak dapat terhubung ke server.", "Koneksi Error"); } 
-    finally { setLoading('btnLoginBtn', false, "LOGIN"); }
-}
-
-function checkAutoSubmitOtp(el) {
-    const val = el.value.toString();
-    if(val.length > 6) el.value = val.slice(0, 6);
-    if(el.value.length === 6) { el.blur(); handleVerifyOtp(); }
-}
-
-async function handleVerifyOtp() {
-    const otp = document.getElementById('otpInputLong').value;
-    if (!otp || otp.length < 6) return showAlert("Masukkan kode OTP!", "Error");
-    setLoading('btnVerifyBtn', true, "VERIFIKASI");
-
-    try {
-        const res = await fetch(`${API_URL}/register-verify`, {
-            method: 'POST', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({...tempRegisterData, otp})
-        });
-        const data = await res.json();
-        if(data.success) {
-            showAlert("Pendaftaran Berhasil, Silakan Login", "Sukses");
-            switchAuth('login');
-        } else {
-            showAlert("OTP Salah/Kadaluarsa", "Gagal");
-        }
-    } catch(e){ showAlert("Error System", "Error"); }
-    finally { setLoading('btnVerifyBtn', false, "VERIFIKASI"); }
-}
-
-async function refreshUserData() {
-    const local = JSON.parse(localStorage.getItem("user"));
-    if (!local) return;
-    try {
-        const res = await fetch(`${API_URL}/get-user`, {
-            method: "POST", headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ email: local.email })
-        });
-        const data = await res.json();
-        if (data.success) {
-            localStorage.setItem("user", JSON.stringify(data.userData));
-            if(!isAdminMode) renderNavbar(); 
-        }
-    } catch (e) { console.error(e); }
+    } catch(e){
+        showAlert("Tidak dapat terhubung ke server.", "Koneksi Error");
+    } finally {
+        setLoading('btnLoginBtn', false, "LOGIN");
+    }
 }
 
 /* ============================================== */
-/* --- NAVIGATION & UI --- */
+/* --- CHANGE PASSWORD --- */
+/* ============================================== */
+function openChangePassModal() {
+    closeAuthModal(); 
+    setTimeout(() => {
+        authOverlay.classList.add('active'); 
+        boxChangePass.style.display = 'block'; 
+        boxChangePass.style.zIndex = '2001';
+    }, 150);
+}
+
+async function handleChangePassword(e) {
+    e.preventDefault();
+    const user = JSON.parse(localStorage.getItem('user'));
+    const oldPass = document.getElementById('oldPass').value;
+    const newPass = document.getElementById('newPass').value;
+
+    const btn = e.target.querySelector('button');
+    const oldText = btn.innerText;
+    btn.innerHTML = "Memproses..."; btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/change-password`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ email: user.email, oldPass, newPass })
+        });
+        const data = await res.json();
+        if(data.success) {
+            showAlert("Password berhasil diperbarui!", "Sukses");
+            closeAuthModal();
+        } else {
+            showAlert(data.message || "Gagal mengubah password.", "Gagal");
+        }
+    } catch (e) {
+        showAlert("Error Server", "Error");
+    } finally {
+        btn.innerText = oldText; btn.disabled = false;
+    }
+}
+
+/* ============================================== */
+/* --- NAVIGASI & UI LOGIC --- */
 /* ============================================== */
 const detailSection = document.getElementById('detail-page');
 const pageTitle = document.getElementById('page-title');
 
 function switchMainTab(tabName) {
-    // Jika user biasa mencoba akses admin, tolak
-    if(tabName === 'admin' && !isAdminMode) return;
-
     localStorage.setItem('activeTab', tabName);
     detailSection.classList.remove('active');
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
@@ -475,24 +490,21 @@ function switchMainTab(tabName) {
     const target = document.getElementById(tabName + '-page');
     if (target) target.classList.add('active');
 
-    if(!isAdminMode) {
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        const activeNav = document.getElementById('nav-' + tabName);
-        if (activeNav) activeNav.classList.add('active');
-    }
+    // Update class active pada navbar secara manual agar sinkron
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    const activeNav = document.getElementById('nav-' + tabName);
+    if (activeNav) activeNav.classList.add('active');
 
-    // Update URL agar bisa di-bookmark (Contoh: ?p=transaksi)
-    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?p=${tabName}`;
-    window.history.pushState({path: newUrl}, '', newUrl);
+    if(tabName === 'admin') {
+        const firstMenu = document.querySelector('.admin-menu-item'); 
+        if(firstMenu) loadAdminTab('users', firstMenu);
+    }
+    history.pushState("", document.title, window.location.pathname + window.location.search);
 }
 
 function goToPage(pageId, titleName) {
+    window.location.hash = pageId;
     localStorage.setItem('currentTitle', titleName);
-    
-    // Set parameter URL (Contoh: ?p=topup-ml)
-    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?p=${pageId}`;
-    window.history.pushState({path: newUrl}, '', newUrl);
-
     renderPage(pageId, titleName);
 }
 
@@ -500,100 +512,264 @@ function renderPage(pageId, titleName) {
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
     detailSection.classList.add('active');
     window.scrollTo(0, 0);
-    pageTitle.innerText = titleName;
+    pageTitle.innerText = titleName ? titleName : (localStorage.getItem('currentTitle') || 'Detail');
 }
 
 function goBack() {
-    // Kembali ke URL bersih / Home
-    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.history.pushState({path: newUrl}, '', newUrl);
-    
+    history.pushState("", document.title, window.location.pathname + window.location.search);
     detailSection.classList.remove('active');
     switchMainTab(localStorage.getItem('activeTab') || 'home');
 }
 
 /* ============================================== */
-/* --- LOGIN STATE CHECK --- */
+/* --- SLIDER SWIPE --- */
 /* ============================================== */
+function setupSliderSwipe() {
+    const wrapper = document.getElementById('slider-wrapper');
+    const container = document.getElementById('slider-container');
+    const dots = document.querySelectorAll('.dot');
+    const totalSlides = 3;
+    let currentIndex = 0;
+    let autoSlideInterval;
+    let startX = 0, endX = 0;
+
+    if(!wrapper) return;
+    function updateSlider() {
+        wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+        dots.forEach(d => d.classList.remove('active'));
+        if(dots[currentIndex]) dots[currentIndex].classList.add('active');
+    }
+    function nextSlide() { currentIndex = (currentIndex + 1) % totalSlides; updateSlider(); }
+    function startAutoSlide() { stopAutoSlide(); autoSlideInterval = setInterval(nextSlide, 4000); }
+    function stopAutoSlide() { clearInterval(autoSlideInterval); }
+    
+    container.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; stopAutoSlide(); });
+    container.addEventListener('touchmove', (e) => { endX = e.touches[0].clientX; });
+    container.addEventListener('touchend', () => {
+        if (startX > endX + 50) nextSlide();
+        else if (startX < endX - 50) { currentIndex = (currentIndex - 1 + totalSlides) % totalSlides; updateSlider(); }
+        startAutoSlide();
+    });
+    startAutoSlide();
+}
+
+/* ============================================== */
+/* --- LOGIN STATE & RENDER UI --- */
+/* ============================================== */
+
 function checkLoginState() {
     const userSession = localStorage.getItem('user');
     const headerAuthArea = document.getElementById('headerAuthArea');
 
     if (userSession) {
         const user = JSON.parse(userSession);
+        const isOwner = isAdmin(user.email);
         
-        // PENTING: Cek Admin di sini
-        if (isAdmin(user.email)) {
-            // Jika user adalah admin, tapi belum dalam mode admin (misal baru refresh)
-            // Kita bisa tawarkan atau auto redirect. Di sini kita auto-set UI
-            // Tapi biarkan switchMainTab menangani tampilannya
-            const params = new URLSearchParams(window.location.search);
-            if(params.get('p') === 'admin') enableAdminMode();
-        }
-
-        // Header User (Kanan Atas)
         let headerAvatar = `<div style="width:35px; height:35px; border-radius:50%; background:white; color:#205081; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px;">${user.username.charAt(0).toUpperCase()}</div>`;
         if (user.profilePic) headerAvatar = `<img src="${user.profilePic}" class="profile-pic">`;
+
         headerAuthArea.innerHTML = `<div class="header-user-area" onclick="switchMainTab('profile')"><span class="user-name-header">${user.username}</span>${headerAvatar}</div>`;
         
-        renderAuthPages(true, user);
-        if(!isAdminMode) renderNavbar();
+        renderAuthPages(true, user, isOwner);
+        // Navbar di-render ulang untuk menampilkan/menyembunyikan menu admin & update foto profil
+        renderNavbar(); 
 
     } else {
-        headerAuthArea.innerHTML = `<button class="btn-login-header" onclick="openAuthModal('login')"><i class="fas fa-user-circle"></i> Masuk</button>`;
-        renderAuthPages(false, null);
-        if(!isAdminMode) renderNavbar();
+        headerAuthArea.innerHTML = `<button class="btn-login-header" onclick="openAuthModal('login')"><i class="fas fa-user-circle"></i> Masuk / Daftar</button>`;
+        renderAuthPages(false, null, false);
+        // Navbar di-render ulang untuk kondisi guest
+        renderNavbar();
     }
 }
 
-function renderAuthPages(isLoggedIn, user) {
+function renderAuthPages(isLoggedIn, user, isOwner) {
     const profileContent = document.getElementById('profile-content');
     const settingsContent = document.getElementById('pengaturan-content');
+    // const navProfileImg sudah tidak perlu dicari manual di sini karena dihandle renderNavbar
     const loginPromptHTML = `
         <div class="auth-required-state">
             <i class="fas fa-lock lock-icon"></i><p>Silakan Login untuk mengakses halaman ini.</p>
-            <button class="btn-center-login" onclick="openAuthModal('login')"><i class="fas fa-sign-in-alt"></i> LOGIN</button>
+            <button class="btn-center-login" onclick="openAuthModal('login')"><i class="fas fa-sign-in-alt"></i> LOGIN / DAFTAR</button>
         </div>`;
 
     if (!isLoggedIn) {
         if(profileContent) profileContent.innerHTML = loginPromptHTML;
         if(settingsContent) settingsContent.innerHTML = loginPromptHTML;
     } else {
-        // Render Profile & Settings (Sama seperti kode asli Anda, dipersingkat di sini)
-        const avatarDisplay = user.profilePic ? `<img src="${user.profilePic}" class="avatar-circle-display" style="border:none;">` : `<div class="avatar-circle-display">${user.username.charAt(0).toUpperCase()}</div>`;
-        
+        const userInitial = user.username.charAt(0).toUpperCase();
+
+        // --- PROFILE PAGE ---
+        if(profileContent) {
+            const avatarDisplay = user.profilePic ? `<img src="${user.profilePic}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` : userInitial;
+            profileContent.innerHTML = `
+                <div class="profile-view-header">
+                    <div class="profile-view-avatar">${avatarDisplay}</div>
+                    <div style="color:white; margin-top:10px; font-weight:bold;">${user.username}</div>
+                    <div style="color:#dbeafe; font-size:12px; margin-top:2px;">Bergabung: ${formatDate(user.createdAt)}</div>
+                </div>
+                <div class="profile-details-card">
+                    <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value">${user.username}</span></div>
+                    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${user.email}</span></div>
+                    <div class="detail-row"><span class="detail-label">Level</span><span class="level-badge" style="background:#205081; color:white;">BASIC</span></div>
+                </div>`;
+        }
+
+        // --- PENGATURAN PAGE ---
         if(settingsContent) {
+            const avatarDisplay = user.profilePic 
+                ? `<img src="${user.profilePic}" class="avatar-circle-display" style="border:none;">`
+                : `<div class="avatar-circle-display">${userInitial}</div>`;
+
+            const status = user.verificationStatus || 'unverified';
+            let badgeHtml = '', isLocked = false, verifyButtonHtml = '', statusText = 'Belum Verifikasi';
+
+            if (status === 'verified') {
+                badgeHtml = `<div class="status-badge green">Terverifikasi</div>`; isLocked = true; statusText = '';
+            } else if (status === 'pending') {
+                badgeHtml = `<div class="status-badge yellow">Proses Verifikasi</div>`; isLocked = true; statusText = 'Proses Verifikasi';
+            } else if (status === 'rejected') {
+                badgeHtml = `<div class="status-badge red">Verifikasi Ditolak</div>`; isLocked = false; statusText = 'Ditolak (Coba Lagi)';
+                verifyButtonHtml = `<button class="btn-verify-mini" onclick="openVerificationModal()">Verifikasi</button>`;
+            } else {
+                badgeHtml = `<div class="status-badge red">Belum Terverifikasi</div>`; isLocked = false;
+                verifyButtonHtml = `<button class="btn-verify-mini" onclick="openVerificationModal()">Verifikasi</button>`;
+            }
+
+            const inputClass = isLocked ? 'form-input-styled permanent' : 'form-input-styled';
+            const readOnlyAttr = isLocked ? 'readonly' : '';
+            let verificationActionArea = status !== 'verified' ? `<div class="verification-action-row">${verifyButtonHtml}<span class="verify-status-text">${statusText}</span></div>` : '';
+
             settingsContent.innerHTML = `
                 <div class="settings-page-wrapper">
-                    <div class="profile-header-container">
-                        <div class="avatar-wrapper">${avatarDisplay}<div class="camera-badge" onclick="triggerFileUpload()"><i class="fas fa-camera"></i></div></div>
-                        <h3 style="margin-top:10px; color:#205081;">${user.username}</h3>
-                        <p style="font-size:12px; color:#666;">${user.email}</p>
+                    <div>
+                        <div class="profile-header-container">
+                            <div class="avatar-wrapper">
+                                ${avatarDisplay}
+                                <div class="camera-badge" onclick="triggerFileUpload()"><i class="fas fa-camera"></i></div>
+                            </div>
+                            <div style="font-size:12px; color:#666; margin-top:10px;">Terdaftar: <b>${formatDate(user.createdAt)}</b></div>
+                            ${badgeHtml} </div>
+
+                        <div class="form-container" style="padding: 0 10px;">
+                            <div class="form-group-styled">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="${inputClass}" value="${user.username}" ${readOnlyAttr} readonly> 
+                                </div>
+                            <div class="form-group-styled">
+                                <label class="form-label">Email</label>
+                                <input type="text" class="${inputClass}" value="${user.email}" ${readOnlyAttr} readonly>
+                            </div>
+                            <div class="form-group-styled">
+                                <label class="form-label">Nomor WhatsApp</label>
+                                <input type="text" class="${inputClass}" value="${user.phone}" ${readOnlyAttr} readonly>
+                            </div>
+
+                            <div class="form-group-styled">
+                                <label class="form-label">Password</label>
+                                <div class="form-input-styled clickable" onclick="openChangePassModal()"><span>••••••••</span><i class="fas fa-pen" style="color:#205081; font-size:12px;"></i></div>
+                                ${verificationActionArea}
+                            </div>
+                        </div>
                     </div>
-                     <div class="logout-area" style="padding: 0 10px;">
-                        ${isAdmin(user.email) ? `<button class="btn-logout-bottom" onclick="enableAdminMode()" style="background:#205081; color:white; border:none; margin-bottom:10px;"><i class="fas fa-user-shield"></i> DASHBOARD ADMIN</button>` : ''}
+                    <div class="logout-area" style="padding: 0 10px;">
                         <button class="btn-logout-bottom" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> KELUAR AKUN</button>
                     </div>
                 </div>`;
-        }
-        if(profileContent) {
-            profileContent.innerHTML = `<div class="profile-view-header"><div class="profile-view-avatar">${avatarDisplay}</div><div style="color:white; margin-top:10px; font-weight:bold;">${user.username}</div></div>`;
         }
     }
 }
 
 function logoutUser() {
     localStorage.removeItem('user');
-    isAdminMode = false;
-    document.body.classList.remove('admin-view-active');
-    checkLoginState();
-    switchMainTab('home');
-    showAlert("Berhasil Logout", "Info");
+    checkLoginState(); 
+    switchMainTab('home'); 
+    showAlert("Anda berhasil keluar.", "Logout");
 }
 
 /* ============================================== */
-/* --- ADMIN DASHBOARD FUNCTIONALITY --- */
+/* --- USER VERIFICATION FLOW --- */
 /* ============================================== */
+function openVerificationModal() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if(!user) return;
+    authOverlay.classList.add('active');
+    document.querySelectorAll('.auth-box').forEach(b => b.style.display='none');
+    boxVerification.style.display = 'block';
+
+    document.getElementById('verifStep1').style.display = 'block';
+    document.getElementById('verifStep2').style.display = 'none';
+
+    document.getElementById('verifUsername').value = user.username;
+    document.getElementById('verifEmail').value = user.email;
+    document.getElementById('verifPhone').value = user.phone;
+}
+
+async function handleVerificationConfirm(e) {
+    e.preventDefault();
+    const newUsername = document.getElementById('verifUsername').value;
+    const newEmail = document.getElementById('verifEmail').value;
+    const newPhone = document.getElementById('verifPhone').value;
+    
+    setLoading('btnVerifConfirm', true, "KONFIRMASI");
+
+    try {
+        const res = await fetch(`${API_URL}/request-otp`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                email: newEmail, username: newUsername, phone: newPhone, type: 'verification_update' 
+            })
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+            document.getElementById('verifStep1').style.display = 'none';
+            document.getElementById('verifStep2').style.display = 'block';
+        } else {
+            showAlert(data.message || "Gagal mengirim kode.", "Gagal");
+        }
+    } catch(e) { showAlert("Error Server", "Error"); }
+    finally { setLoading('btnVerifConfirm', false, "KONFIRMASI"); }
+}
+
+async function handleVerificationSubmitOtp() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const otp = document.getElementById('verifOtpCode').value;
+    
+    const newUsername = document.getElementById('verifUsername').value;
+    const newEmail = document.getElementById('verifEmail').value;
+    const newPhone = document.getElementById('verifPhone').value;
+    
+    if(!otp) return showAlert("Masukkan kode OTP!", "Error");
+    setLoading('btnVerifSubmit', true, "KIRIM & VERIFIKASI");
+
+    try {
+        const res = await fetch(`${API_URL}/submit-verification`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                originalEmail: user.email,
+                newUsername, newEmail, newPhone, otp
+            })
+        });
+        const data = await res.json();
+
+        if(data.success) {
+            showAlert("Permintaan Verifikasi Terkirim! Menunggu persetujuan Admin.", "Sukses");
+            localStorage.setItem('user', JSON.stringify(data.user)); 
+            closeAuthModal();
+            checkLoginState(); 
+        } else {
+            showAlert(data.message || "Gagal verifikasi.", "Gagal");
+        }
+    } catch(e) { showAlert("Error koneksi.", "Error"); }
+    finally { setLoading('btnVerifSubmit', false, "KIRIM & VERIFIKASI"); }
+}
+
+/* ============================================== */
+/* --- ADMIN DASHBOARD --- */
+/* ============================================== */
+
 function loadAdminTab(tab, element) {
     document.querySelectorAll('.admin-menu-item').forEach(el => el.classList.remove('active'));
     if(element) element.classList.add('active');
@@ -606,18 +782,12 @@ function loadAdminTab(tab, element) {
     else container.innerHTML = `<div class="empty-state-placeholder"><p>Menu ${tab} kosong.</p></div>`;
 }
 
-/* ============================================== */
-/* --- LOGIKA LENGKAP ADMIN DASHBOARD --- */
-/* ============================================== */
-
 async function fetchAdminUsers() {
     try {
         const res = await fetch(`${API_URL}/admin/users`);
         const data = await res.json();
         renderAdminUserList(data.users);
-    } catch (e) { 
-        document.getElementById('admin-content-area').innerText = "Gagal memuat data user."; 
-    }
+    } catch (e) { document.getElementById('admin-content-area').innerText = "Error."; }
 }
 
 function renderAdminUserList(users) {
@@ -656,9 +826,7 @@ async function fetchAdminVerifications() {
         const res = await fetch(`${API_URL}/admin/verifications`); 
         const data = await res.json();
         renderAdminVerifList(data.users);
-    } catch (e) { 
-        document.getElementById('admin-content-area').innerText = "Gagal memuat data verifikasi."; 
-    }
+    } catch (e) { document.getElementById('admin-content-area').innerText = "Error."; }
 }
 
 function renderAdminVerifList(users) {
@@ -712,37 +880,25 @@ async function adminVerifyAction(userId, action) {
 }
 
 async function deleteUser(id, name) {
-    if(!confirm(`Hapus user ${name}?`)) return;
+    if(!confirm(`Hapus ${name}?`)) return;
     try {
         const res = await fetch(`${API_URL}/admin/users/${id}`, { method: 'DELETE' });
-        const data = await res.json();
-        if(data.success) {
-            fetchAdminUsers();
-            showAlert("User berhasil dihapus", "Sukses");
-        }
-    } catch(e){ showAlert("Gagal menghapus user", "Error"); }
+        if(await res.json().success) fetchAdminUsers();
+    } catch(e){}
 }
 
 function openAdminEditModal(user) {
     authOverlay.classList.add('active');
     document.querySelectorAll('.auth-box').forEach(b => b.style.display='none');
-    
-    // Pastikan elemen boxAdminEdit sudah terdefinisi di init
-    const modal = document.getElementById('adminEditUserModal');
-    if(modal) {
-        modal.style.display='block';
-        document.getElementById('editUserId').value = user._id;
-        document.getElementById('editUserUsername').value = user.username;
-        document.getElementById('editUserEmail').value = user.email;
-        document.getElementById('editUserPhone').value = user.phone;
-        document.getElementById('editUserPass').value = user.password;
-    }
+    boxAdminEdit.style.display='block';
+    document.getElementById('editUserId').value = user._id;
+    document.getElementById('editUserUsername').value = user.username;
+    document.getElementById('editUserEmail').value = user.email;
+    document.getElementById('editUserPhone').value = user.phone;
+    document.getElementById('editUserPass').value = user.password;
 }
 
-function closeAdminEditModal() { 
-    authOverlay.classList.remove('active'); 
-    document.getElementById('adminEditUserModal').style.display = 'none';
-}
+function closeAdminEditModal() { authOverlay.classList.remove('active'); }
 
 async function handleAdminUpdateUser(e) {
     e.preventDefault();
@@ -753,58 +909,18 @@ async function handleAdminUpdateUser(e) {
         phone: document.getElementById('editUserPhone').value,
         password: document.getElementById('editUserPass').value
     };
-    
-    setLoading('btnAdminSave', true, "SIMPAN PERUBAHAN");
-    
     try {
-        const res = await fetch(`${API_URL}/admin/users/${id}`, {
+        await fetch(`${API_URL}/admin/users/${id}`, {
             method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
         });
-        
-        if(res.ok) {
-            closeAdminEditModal();
-            fetchAdminUsers();
-            showAlert("Data user berhasil diupdate", "Sukses");
-        } else {
-            showAlert("Gagal update user", "Error");
-        }
-    } catch(e) { showAlert("Error Server saat update", "Error"); }
-    finally { setLoading('btnAdminSave', false, "SIMPAN PERUBAHAN"); }
+        closeAdminEditModal();
+        fetchAdminUsers();
+    } catch(e) { showAlert("Error Update", "Error"); }
 }
-
-async function fetchAdminUsers() {
-    try {
-        const res = await fetch(`${API_URL}/admin/users`);
-        const data = await res.json();
-        renderAdminUserList(data.users);
-    } catch (e) { document.getElementById('admin-content-area').innerHTML = "Error loading users."; }
-}
-
-function renderAdminUserList(users) {
-    const container = document.getElementById('admin-content-area');
-    if(!users || users.length === 0) { container.innerHTML = "<p>User kosong.</p>"; return; }
-    let html = `<div class="admin-list-container">`;
-    users.forEach(u => {
-        html += `<div class="admin-acc-item"><div class="admin-acc-header"><span>${u.username}</span><small>${u.email}</small></div></div>`;
-    });
-    html += `</div>`;
-    container.innerHTML = html;
-}
-async function fetchAdminVerifications() { /* Logic Fetch Verif */ document.getElementById('admin-content-area').innerHTML = "List Verifikasi Kosong"; }
 
 /* ============================================== */
-/* --- UTILS: CROPPER & SLIDER --- */
+/* --- CROPPER UTILS --- */
 /* ============================================== */
-function setupSliderSwipe() {
-    const wrapper = document.getElementById('slider-wrapper');
-    if(!wrapper) return;
-    let idx = 0;
-    setInterval(() => {
-        idx = (idx + 1) % 3;
-        wrapper.style.transform = `translateX(-${idx * 100}%)`;
-    }, 4000);
-}
-
 function setupFileUploadListener() {
     const fileInput = document.getElementById('fileInput');
     if (fileInput) {
@@ -814,9 +930,7 @@ function setupFileUploadListener() {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     document.getElementById('imageToCrop').src = event.target.result;
-                    document.getElementById('cropModal').style.display = 'flex';
-                    if(cropper) cropper.destroy();
-                    cropper = new Cropper(document.getElementById('imageToCrop'), { aspectRatio: 1, viewMode: 1 });
+                    openCropModal();
                 };
                 reader.readAsDataURL(file);
             }
@@ -825,6 +939,11 @@ function setupFileUploadListener() {
     }
 }
 function triggerFileUpload() { document.getElementById('fileInput').click(); }
+function openCropModal() {
+    document.getElementById('cropModal').style.display = 'flex';
+    if(cropper) cropper.destroy();
+    cropper = new Cropper(document.getElementById('imageToCrop'), { aspectRatio: 1, viewMode: 1 });
+}
 function closeCropModal() { document.getElementById('cropModal').style.display = 'none'; if(cropper) cropper.destroy(); }
 function saveCropImage() {
     if(!cropper) return;
@@ -841,12 +960,7 @@ async function updateProfilePicOnServer(base64Image) {
         if((await res.json()).success) {
             user.profilePic = base64Image;
             localStorage.setItem('user', JSON.stringify(user));
-            closeCropModal(); 
-            if(isAdminMode) {
-                 // update UI Admin avatar logic here
-            } else {
-                 checkLoginState(); // refresh User UI
-            }
+            closeCropModal(); checkLoginState();
         }
     } catch (e) {}
 }
