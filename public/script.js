@@ -4,6 +4,69 @@
 const API_URL = "/api"; 
 const ADMIN_EMAILS = ["ilyassyuhada00@gmail.com", "admin@gmail.com"]; 
 
+/* ============================================== */
+/* --- KONFIGURASI DATA TAMPILAN (PARAMETER BARU) --- */
+/* ============================================== */
+
+// 1. DATA NAVBAR
+const NAV_MENU = [
+    { id: 'home', icon: 'fa-home', label: 'Home' },
+    { id: 'transaksi', icon: 'fa-exchange-alt', label: 'Transaksi' },
+    { id: 'admin', icon: 'fa-font', label: 'Admin', role: 'admin' }, // Hanya muncul jika admin
+    { id: 'profile', type: 'profile', label: 'Profile' }, // Tipe khusus (lingkaran foto)
+    { id: 'produk', icon: 'fa-shopping-basket', label: 'Produk' },
+    { id: 'pengaturan', icon: 'fa-cog', label: 'Pengaturan' }
+];
+
+// 2. DATA KATEGORI GAME (HOME PAGE)
+const HOME_CATEGORIES = [
+    {
+        title: "Akun Game",
+        icon: "fa-user-circle",
+        colorClass: "icon-akun",
+        items: [
+            { id: 'akun-roblox', name: 'Roblox', img: 'https://api.deline.web.id/zQxSf6aiv7.jpg' },
+            { id: 'akun-ml', name: 'Mobile Legends', img: 'https://api.deline.web.id/u8m7Yq2Pdu.jpg' },
+            { id: 'akun-ff', name: 'Free Fire', img: 'https://api.deline.web.id/BqQnrJVNPO.jpg' },
+            { id: 'akun-pubg', name: 'PUBG', img: 'https://api.deline.web.id/UXAYVjr3MP.jpg' },
+            { id: 'akun-fc', name: 'EA Sports FC', img: 'https://api.deline.web.id/drNQO5aO9Z.jpg' }
+        ]
+    },
+    {
+        title: "Top Up Game",
+        icon: "fa-gem",
+        colorClass: "icon-topup",
+        items: [
+            { id: 'topup-ml', name: 'Mobile Legends', img: 'https://api.deline.web.id/u8m7Yq2Pdu.jpg' },
+            { id: 'topup-ff', name: 'Free Fire', img: 'https://api.deline.web.id/BqQnrJVNPO.jpg' },
+            { id: 'topup-roblox', name: 'Roblox', img: 'https://api.deline.web.id/zQxSf6aiv7.jpg' },
+            { id: 'topup-pubg', name: 'PUBG Mobile', img: 'https://api.deline.web.id/UXAYVjr3MP.jpg' }
+        ]
+    },
+    {
+        title: "Joki Game",
+        icon: "fa-gamepad",
+        colorClass: "icon-joki",
+        items: [
+            { id: 'joki-ml', name: 'Joki MLBB', img: 'https://api.deline.web.id/u8m7Yq2Pdu.jpg' },
+            { id: 'joki-ff', name: 'Joki FF', img: 'https://api.deline.web.id/BqQnrJVNPO.jpg' },
+            { id: 'joki-roblox', name: 'Joki Roblox', img: 'https://api.deline.web.id/zQxSf6aiv7.jpg' }
+        ]
+    },
+    {
+        title: "Lainnya",
+        icon: "fa-layer-group",
+        colorClass: "icon-lainnya",
+        items: [
+            { id: 'sewa-bot', name: 'Sewa Bot', img: 'https://api.deline.web.id/8ASC30F6zj.jpg' },
+            { id: 'script', name: 'Script', img: 'https://api.deline.web.id/kP9sQzd1TU.jpg' },
+            { id: 'apk-premium', name: 'Apk Premium', img: 'https://api.deline.web.id/Lunp2IR8bG.jpg' },
+            { id: 'jasa-web', name: 'Jasa Web', img: 'https://api.deline.web.id/OWtCG5ldGU.jpg' },
+            { id: 'pulsa', name: 'Pulsa', img: 'https://api.deline.web.id/MH25SGMbc9.jpg' }
+        ]
+    }
+];
+
 /* --- VARIABLES --- */
 let tempRegisterData = {}; 
 let authMode = 'register'; 
@@ -20,7 +83,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     injectCustomElements();
     initializeDomElements();
 
-    await refreshUserData(); // <<<<< TAMBAHKAN INI
+    // --- BARU: Render UI dari Parameter ---
+    initDynamicUI();
+    // -------------------------------------
+
+    await refreshUserData(); 
 
     checkLoginState();
     setupFileUploadListener();
@@ -56,6 +123,80 @@ function initializeDomElements() {
     boxChangePass = document.getElementById('changePassModal');
     boxAdminEdit = document.getElementById('adminEditUserModal');
     boxVerification = document.getElementById('verificationModal');
+}
+
+/* ============================================== */
+/* --- FUNGSI RENDER DINAMIS (BARU) --- */
+/* ============================================== */
+function initDynamicUI() {
+    renderHomeCategories();
+    renderNavbar(); // Navbar akan dirender awal, nanti diupdate lagi saat login check
+}
+
+function renderHomeCategories() {
+    const container = document.getElementById('dynamic-category-container');
+    if (!container) return;
+
+    let html = '';
+    HOME_CATEGORIES.forEach(cat => {
+        let itemsHtml = '';
+        cat.items.forEach(item => {
+            itemsHtml += `
+                <div class="cat-item" onclick="goToPage('${item.id}', '${item.name}')">
+                    <img src="${item.img}" class="cat-img" alt="${item.name}">
+                    <div class="cat-name">${item.name}</div>
+                </div>`;
+        });
+
+        html += `
+        <div class="category-card">
+            <div class="category-header">
+                <i class="fas ${cat.icon} ${cat.colorClass}"></i> ${cat.title}
+            </div>
+            <div class="cat-grid">${itemsHtml}</div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderNavbar() {
+    const navContainer = document.querySelector('.bottom-navbar');
+    if (!navContainer) return;
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    const isOwner = user ? isAdmin(user.email) : false;
+    const activeTab = localStorage.getItem('activeTab') || 'home';
+
+    let html = '';
+    NAV_MENU.forEach(item => {
+        // Skip menu admin jika bukan admin
+        if (item.role === 'admin' && !isOwner) return;
+
+        const isActive = activeTab === item.id ? 'active' : '';
+
+        if (item.type === 'profile') {
+            // Logic foto profil
+            let imgContent = `<img src="https://api.deline.web.id/76NssFHmcI.png">`; // Default
+            if (user && user.profilePic) {
+                imgContent = `<img src="${user.profilePic}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            } else if (user && user.username) {
+                imgContent = `<div style="width:100%; height:100%; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#205081; font-weight:bold; font-size:16px;">${user.username.charAt(0).toUpperCase()}</div>`;
+            }
+
+            html += `
+            <div class="nav-item center-item ${isActive}" id="nav-${item.id}" onclick="switchMainTab('${item.id}')">
+                <div class="floating-circle">${imgContent}</div>
+                <span>${item.label}</span>
+            </div>`;
+        } else {
+            html += `
+            <div class="nav-item ${isActive}" id="nav-${item.id}" onclick="switchMainTab('${item.id}')">
+                <i class="fas ${item.icon}"></i>
+                <span>${item.label}</span>
+            </div>`;
+        }
+    });
+    navContainer.innerHTML = html;
 }
 
 /* ============================================== */
@@ -96,29 +237,20 @@ function formatDate(dateString) {
 }
 
 /* ============================================== */
-/* --- OTP HANDLING (PERBAIKAN UTAMA) --- */
+/* --- OTP HANDLING --- */
 /* ============================================== */
-
-// 1. Fungsi ini dipanggil dari HTML oninput="checkAutoSubmitOtp(this)"
 function checkAutoSubmitOtp(el) {
     const val = el.value.toString();
-    
-    // Batasi input maksimal 6 karakter
-    if(val.length > 6) {
-        el.value = val.slice(0, 6);
-    }
-    
-    // Auto Submit jika sudah 6 karakter
+    if(val.length > 6) { el.value = val.slice(0, 6); }
     if(el.value.length === 6) {
-        el.blur(); // Hilangkan keyboard (opsional)
-        handleVerifyOtp(); // Panggil fungsi verifikasi
+        el.blur(); 
+        handleVerifyOtp(); 
     }
 }
 
 /* ============================================== */
 /* --- AUTHENTICATION FLOW --- */
 /* ============================================== */
-
 function openAuthModal(type) {
     authOverlay.classList.add('active');
     document.body.classList.add('lock-scroll');
@@ -133,23 +265,18 @@ function closeAuthModal() {
 
 function switchAuth(type) {
     document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
-    
     if(type === 'login') {
         boxLogin.style.display = 'block';
-    } 
-    else if(type === 'register') { 
+    } else if(type === 'register') { 
         boxReg.style.display = 'block'; 
         authMode = 'register'; 
-    } 
-    else if(type === 'otp') { 
+    } else if(type === 'otp') { 
         boxOtp.style.display = 'block'; 
-        // Focus ke input OTP (ID SUDAH DIPERBAIKI: otpInputLong)
         setTimeout(() => {
             const input = document.getElementById('otpInputLong');
             if(input) { input.value = ''; input.focus(); }
         }, 100);
-    } 
-    else if(type === 'forgot') {
+    } else if(type === 'forgot') {
         if(boxForgot) boxForgot.style.display = 'block';
     }
 }
@@ -211,19 +338,18 @@ async function refreshUserData() {
         const data = await res.json();
         if (data.success) {
             localStorage.setItem("user", JSON.stringify(data.userData));
+            renderNavbar(); // Refresh navbar image
         }
     } catch (e) {
         console.error("Gagal refresh user:", e);
     }
 }
 
-/* --- VERIFY OTP & AUTO LOGIN (SUDAH DIPERBAIKI) --- */
+/* --- VERIFY OTP & AUTO LOGIN --- */
 async function handleVerifyOtp() {
-    // FIX: Mengambil ID yang sesuai dengan di HTML (otpInputLong)
     const inputLong = document.getElementById('otpInputLong');
     let otp = inputLong ? inputLong.value : '';
 
-    // Validasi panjang OTP
     if (!otp || otp.toString().length < 6) {
         return showAlert("Masukkan 6 digit kode OTP!", "Peringatan");
     }
@@ -238,12 +364,10 @@ async function handleVerifyOtp() {
         const data = await res.json();
 
         if(data.success) {
-            // AUTO LOGIN
             await performAutoLogin(tempRegisterData.username, tempRegisterData.password);
         } else {
             showAlert("Kode OTP Salah atau Kadaluarsa.", "Gagal");
             setLoading('btnVerifyBtn', false, "VERIFIKASI");
-            // Reset input jika salah
             if(inputLong) inputLong.value = '';
         }
     } catch(e){
@@ -366,6 +490,7 @@ function switchMainTab(tabName) {
     const target = document.getElementById(tabName + '-page');
     if (target) target.classList.add('active');
 
+    // Update class active pada navbar secara manual agar sinkron
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
     const activeNav = document.getElementById('nav-' + tabName);
     if (activeNav) activeNav.classList.add('active');
@@ -374,7 +499,6 @@ function switchMainTab(tabName) {
         const firstMenu = document.querySelector('.admin-menu-item'); 
         if(firstMenu) loadAdminTab('users', firstMenu);
     }
-    // Update URL tanpa reload
     history.pushState("", document.title, window.location.pathname + window.location.search);
 }
 
@@ -445,31 +569,23 @@ function checkLoginState() {
         if (user.profilePic) headerAvatar = `<img src="${user.profilePic}" class="profile-pic">`;
 
         headerAuthArea.innerHTML = `<div class="header-user-area" onclick="switchMainTab('profile')"><span class="user-name-header">${user.username}</span>${headerAvatar}</div>`;
+        
         renderAuthPages(true, user, isOwner);
-        toggleAdminNav(isOwner);
+        // Navbar di-render ulang untuk menampilkan/menyembunyikan menu admin & update foto profil
+        renderNavbar(); 
+
     } else {
         headerAuthArea.innerHTML = `<button class="btn-login-header" onclick="openAuthModal('login')"><i class="fas fa-user-circle"></i> Masuk / Daftar</button>`;
         renderAuthPages(false, null, false);
-        toggleAdminNav(false);
-    }
-}
-
-function toggleAdminNav(isOwner) {
-    const navTrans = document.getElementById('nav-transaksi');
-    const navAdmin = document.getElementById('nav-admin');
-    if (isOwner) {
-        if(navTrans) navTrans.style.display = 'none';
-        if(navAdmin) navAdmin.style.display = 'flex';
-    } else {
-        if(navTrans) navTrans.style.display = 'flex';
-        if(navAdmin) navAdmin.style.display = 'none';
+        // Navbar di-render ulang untuk kondisi guest
+        renderNavbar();
     }
 }
 
 function renderAuthPages(isLoggedIn, user, isOwner) {
     const profileContent = document.getElementById('profile-content');
     const settingsContent = document.getElementById('pengaturan-content');
-    const navProfileImg = document.querySelector('.floating-circle');
+    // const navProfileImg sudah tidak perlu dicari manual di sini karena dihandle renderNavbar
     const loginPromptHTML = `
         <div class="auth-required-state">
             <i class="fas fa-lock lock-icon"></i><p>Silakan Login untuk mengakses halaman ini.</p>
@@ -479,15 +595,8 @@ function renderAuthPages(isLoggedIn, user, isOwner) {
     if (!isLoggedIn) {
         if(profileContent) profileContent.innerHTML = loginPromptHTML;
         if(settingsContent) settingsContent.innerHTML = loginPromptHTML;
-        if(navProfileImg) navProfileImg.innerHTML = `<img src="https://api.deline.web.id/76NssFHmcI.png">`;
     } else {
         const userInitial = user.username.charAt(0).toUpperCase();
-
-        if(navProfileImg) {
-            navProfileImg.innerHTML = user.profilePic 
-                ? `<img src="${user.profilePic}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
-                : `<div style="width:100%; height:100%; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#205081; font-weight:bold; font-size:20px; border:2px solid #eee;">${userInitial}</div>`;
-        }
 
         // --- PROFILE PAGE ---
         if(profileContent) {
@@ -580,7 +689,6 @@ function logoutUser() {
 /* ============================================== */
 /* --- USER VERIFICATION FLOW --- */
 /* ============================================== */
-
 function openVerificationModal() {
     const user = JSON.parse(localStorage.getItem('user'));
     if(!user) return;
@@ -657,7 +765,6 @@ async function handleVerificationSubmitOtp() {
     } catch(e) { showAlert("Error koneksi.", "Error"); }
     finally { setLoading('btnVerifSubmit', false, "KIRIM & VERIFIKASI"); }
 }
-
 
 /* ============================================== */
 /* --- ADMIN DASHBOARD --- */
