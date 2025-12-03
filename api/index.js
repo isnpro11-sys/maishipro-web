@@ -12,8 +12,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // --- KONFIGURASI ADMIN ---
-// Masukkan email owner di sini
-const ADMIN_EMAILS = ["owner@maishipro.com", "admin@gmail.com"]; 
+const ADMIN_EMAILS = ["owner@maishipro.com", "admin@gmail.com", "ilyassyuhada00@gmail.com"]; 
 
 // 1. Koneksi Database
 let isConnected = false;
@@ -37,6 +36,9 @@ const UserSchema = new mongoose.Schema({
     phone: { type: String, unique: true },
     profilePic: { type: String, default: "" },
     role: { type: String, default: "Member" }, // Member, Admin
+    
+    // Status Verifikasi: 'unverified', 'pending' (sedang diproses), 'verified', 'rejected'
+    verificationStatus: { type: String, default: "unverified" }, 
     sellerLevel: { type: String, default: "Newbie" },
     createdAt: { type: Date, default: Date.now }
 });
@@ -45,6 +47,8 @@ const User = mongoose.models.User || mongoose.model('User', UserSchema);
 const OtpSchema = new mongoose.Schema({
     email: String,
     code: String,
+    type: { type: String, default: 'register' }, // 'register' atau 'verification'
+    tempData: { type: Object, default: {} }, // Menyimpan data sementara saat verifikasi
     createdAt: { type: Date, expires: '5m', default: Date.now }
 });
 const OTP = mongoose.models.OTP || mongoose.model('OTP', OtpSchema);
@@ -64,25 +68,36 @@ const transporter = nodemailer.createTransport({
 
 app.get('/api', (req, res) => res.send("Server is Running!"));
 
-// A. REQUEST OTP
+// A. REQUEST OTP (Register & Verification)
 app.post('/api/request-otp', async (req, res) => {
     try {
         await connectDB();
-        const { email, type, username, phone } = req.body;
+        const { email, type, username, phone, password, userId } = req.body;
 
+        // Cek duplikasi jika register atau jika ganti data saat verifikasi
         if (type === 'register') {
+            const exist = await User.findOne({ $or: [{ email }, { username }, { phone }] });
+            if (exist) return res.status(400).json({ success: false, message: "Data sudah terdaftar!" });
+        } else if (type === 'verification') {
+            // Pastikan user tidak menggunakan data milik orang lain (kecuali punya sendiri)
             const exist = await User.findOne({
-                $or: [{ email }, { username }, { phone }]
+                $and: [
+                    { _id: { $ne: userId } }, // Bukan user ini sendiri
+                    { $or: [{ email }, { username }, { phone }] }
+                ]
             });
-            if (exist) return res.status(400).json({ success: false, message: "Data (Email/User/HP) sudah terdaftar!" });
-        }
-        if (type === 'forgot') {
-            const exist = await User.findOne({ email });
-            if (!exist) return res.status(400).json({ success: false, message: "Email tidak ditemukan!" });
+            if (exist) return res.status(400).json({ success: false, message: "Username/Email/HP sudah dipakai user lain!" });
         }
 
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-        await OTP.findOneAndUpdate({ email }, { code: otpCode }, { upsert: true });
+        
+        // Simpan OTP beserta data sementara (untuk verifikasi)
+        await OTP.create({
+            email,
+            code: otpCode,
+            type: type,
+            tempData: { username, email, phone, password } // Simpan data yg mau diupdate
+        });
 
         // --- DESAIN EMAIL HTML ---
         const emailTemplate = `
@@ -166,15 +181,23 @@ app.post('/api/request-otp', async (req, res) => {
 app.post('/api/register-verify', async (req, res) => {
     try {
         await connectDB();
-        const { username, email, phone, password, otp } = req.body;
+        const { email, otp } = req.body; // Data diambil dari OTP record
 
-        const validOtp = await OTP.findOne({ email, code: otp });
-        if (!validOtp) return res.status(400).json({ success: false, message: "OTP Salah!" });
+        // Cari OTP berdasarkan email dan kode, ambil yang terbaru
+        const validOtp = await OTP.findOne({ email, code: otp, type: 'register' }).sort({ createdAt: -1 });
+        
+        if (!validOtp) return res.status(400).json({ success: false, message: "OTP Salah/Kadaluarsa!" });
 
-        // Cek apakah email termasuk admin
+        const { username, phone, password } = validOtp.tempData;
         const userRole = ADMIN_EMAILS.includes(email) ? 'Admin' : 'Member';
 
-        await User.create({ username, email, phone, password, role: userRole, createdAt: new Date() });
+        await User.create({ 
+            username, email, phone, password, 
+            role: userRole, 
+            verificationStatus: 'unverified',
+            createdAt: new Date() 
+        });
+        
         await OTP.deleteOne({ _id: validOtp._id });
 
         res.json({ success: true, message: "Pendaftaran Berhasil!" });
@@ -183,32 +206,34 @@ app.post('/api/register-verify', async (req, res) => {
     }
 });
 
-// C. CEK OTP
-app.post('/api/check-otp', async (req, res) => {
+// C. SUBMIT VERIFIKASI USER (Konfirmasi OTP lalu update data & status)
+app.post('/api/verification-confirm', async (req, res) => {
     try {
         await connectDB();
-        const { email, otp } = req.body;
-        const validOtp = await OTP.findOne({ email, code: otp });
+        const { userId, otp, email } = req.body; // Email yang baru diinput
+
+        const validOtp = await OTP.findOne({ email, code: otp, type: 'verification' }).sort({ createdAt: -1 });
         if (!validOtp) return res.status(400).json({ success: false, message: "OTP Salah!" });
-        res.json({ success: true, message: "OTP Valid" });
-    } catch (e) { res.status(500).json({ success: false, message: "Error" }); }
-});
 
-// D. RESET PASSWORD
-app.post('/api/reset-password', async (req, res) => {
-    try {
-        await connectDB();
-        const { email, otp, newPassword } = req.body;
-        const validOtp = await OTP.findOne({ email, code: otp });
-        if (!validOtp) return res.status(400).json({ success: false, message: "OTP Habis/Salah." });
-        
-        await User.findOneAndUpdate({ email }, { password: newPassword });
+        const { username, phone } = validOtp.tempData;
+
+        // Update User Data & Set Status ke 'pending'
+        const updatedUser = await User.findByIdAndUpdate(userId, {
+            username, 
+            email, 
+            phone,
+            verificationStatus: 'pending' // Menunggu ACC Admin
+        }, { new: true });
+
         await OTP.deleteOne({ _id: validOtp._id });
-        res.json({ success: true, message: "Password diubah!" });
-    } catch (e) { res.status(500).json({ success: false, message: "Error Reset." }); }
+
+        res.json({ success: true, message: "Permintaan Verifikasi Dikirim!", user: updatedUser });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Gagal Verifikasi." });
+    }
 });
 
-// E. LOGIN
+// D. LOGIN
 app.post('/api/login', async (req, res) => {
     try {
         await connectDB();
@@ -221,33 +246,19 @@ app.post('/api/login', async (req, res) => {
         if (!user) return res.status(400).json({ success: false, message: "User tidak ditemukan!" });
         if (user.password !== password) return res.status(400).json({ success: false, message: "Password Salah!" });
 
-        // Force update role jika email ada di list ADMIN_EMAILS (untuk keamanan ganda)
-        let finalRole = user.role;
-        if (ADMIN_EMAILS.includes(user.email)) {
-             finalRole = 'Admin';
-             if(user.role !== 'Admin') await User.updateOne({_id: user._id}, {role: 'Admin'});
+        // Force Admin check
+        if (ADMIN_EMAILS.includes(user.email) && user.role !== 'Admin') {
+             await User.updateOne({_id: user._id}, {role: 'Admin'});
+             user.role = 'Admin';
         }
 
-        res.json({ 
-            success: true, 
-            userData: { 
-                _id: user._id,
-                username: user.username, 
-                email: user.email, 
-                phone: user.phone,
-                password: user.password,
-                profilePic: user.profilePic,
-                role: finalRole, 
-                sellerLevel: user.sellerLevel,
-                createdAt: user.createdAt
-            } 
-        });
+        res.json({ success: true, userData: user });
     } catch (e) {
         res.status(500).json({ success: false, message: "Error Login" });
     }
 });
 
-// F. UPDATE PROFILE PIC
+// E. UPDATE PROFILE PIC
 app.post('/api/update-pic', async (req, res) => {
     try {
         await connectDB();
@@ -259,17 +270,49 @@ app.post('/api/update-pic', async (req, res) => {
 
 // --- ADMIN ROUTES ---
 
-// 1. Get All Users
+// 1. Get All Users (Untuk Tab Users)
 app.get('/api/admin/users', async (req, res) => {
     try {
         await connectDB();
-        // Hanya return jika request aman (di real app pakai token, disini kita anggap client validasi role)
         const users = await User.find().sort({ createdAt: -1 });
         res.json({ success: true, users });
     } catch (e) { res.status(500).json({ success: false, message: "Error fetch users" }); }
 });
 
-// 2. Delete User
+// 2. Get Pending Verifications (Untuk Tab Verifikasi)
+app.get('/api/admin/verifications', async (req, res) => {
+    try {
+        await connectDB();
+        const users = await User.find({ verificationStatus: 'pending' });
+        res.json({ success: true, users });
+    } catch (e) { res.status(500).json({ success: false, message: "Error fetch pending" }); }
+});
+
+// 3. Admin Action (Terima/Tolak Verifikasi)
+app.post('/api/admin/verification-action', async (req, res) => {
+    try {
+        await connectDB();
+        const { userId, action } = req.body; // action: 'approve' or 'reject'
+        
+        const newStatus = action === 'approve' ? 'verified' : 'rejected';
+        
+        await User.findByIdAndUpdate(userId, { verificationStatus: newStatus });
+        
+        res.json({ success: true, message: `User berhasil di-${action === 'approve' ? 'verifikasi' : 'tolak'}` });
+    } catch (e) { res.status(500).json({ success: false, message: "Gagal memproses." }); }
+});
+
+// 4. Update User (Admin Edit)
+app.put('/api/admin/users/:id', async (req, res) => {
+    try {
+        await connectDB();
+        const { id } = req.params;
+        await User.findByIdAndUpdate(id, req.body);
+        res.json({ success: true, message: "User diupdate!" });
+    } catch (e) { res.status(500).json({ success: false, message: "Gagal update." }); }
+});
+
+// 5. Delete User
 app.delete('/api/admin/users/:id', async (req, res) => {
     try {
         await connectDB();
@@ -277,18 +320,6 @@ app.delete('/api/admin/users/:id', async (req, res) => {
         await User.findByIdAndDelete(id);
         res.json({ success: true, message: "User dihapus." });
     } catch (e) { res.status(500).json({ success: false, message: "Gagal hapus." }); }
-});
-
-// 3. Edit User (Admin Power)
-app.put('/api/admin/users/:id', async (req, res) => {
-    try {
-        await connectDB();
-        const { id } = req.params;
-        const updateData = req.body; // { username, email, phone, password, role }
-        
-        await User.findByIdAndUpdate(id, updateData);
-        res.json({ success: true, message: "User diupdate!" });
-    } catch (e) { res.status(500).json({ success: false, message: "Gagal update." }); }
 });
 
 module.exports = app;
