@@ -2,6 +2,7 @@
 /* --- KONFIGURASI BACKEND (WAJIB JALAN) --- */
 /* ============================================== */
 const API_URL = "/api"; 
+// Masukkan semua email admin di array ini
 const ADMIN_EMAILS = ["ilyassyuhada00@gmail.com", "admin@gmail.com"]; 
 
 /* --- VARIABLES --- */
@@ -20,9 +21,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     injectCustomElements();
     initializeDomElements();
 
-    await refreshUserData(); // <<<<< TAMBAHKAN INI
+    await refreshUserData(); 
 
-    checkLoginState();
+    checkLoginState(); // Ini akan memanggil renderNavbar juga
     setupFileUploadListener();
     setupSliderSwipe();
 });
@@ -111,15 +112,21 @@ function renderNavbar() {
     let html = '';
     
     NAV_MENU.forEach(item => {
-        // Skip menu admin jika bukan admin
+        // LOGIKA BARU: Hilangkan Transaksi jika Admin
+        if (item.id === 'transaksi' && isOwner) return;
+
+        // LOGIKA LAMA: Hilangkan Admin jika BUKAN Admin
         if (item.role === 'admin' && !isOwner) return;
 
         // Render khusus untuk tombol Profile (karena ada foto)
         if (item.type === 'profile') {
+            // Cek apakah ada foto profil user
+            const profileImgSrc = (user && user.profilePic) ? user.profilePic : 'https://api.deline.web.id/76NssFHmcI.png';
+            
             html += `
             <div class="nav-item center-item" id="nav-${item.id}" onclick="switchMainTab('${item.id}')">
                 <div class="floating-circle">
-                    <img src="https://api.deline.web.id/76NssFHmcI.png" alt="Profile">
+                    <img src="${profileImgSrc}" alt="Profile">
                 </div>
                 <span>${item.label}</span>
             </div>`;
@@ -148,7 +155,6 @@ function renderHomeCategories() {
     let html = '';
 
     HOME_CATEGORIES.forEach(cat => {
-        // Buat header kategori
         html += `
         <div class="category-card">
             <div class="category-header">
@@ -156,7 +162,6 @@ function renderHomeCategories() {
             </div>
             <div class="cat-grid">`;
         
-        // Loop items di dalam kategori
         cat.items.forEach(item => {
             html += `
                 <div class="cat-item" onclick="goToPage('${item.id}', '${item.name}')">
@@ -202,6 +207,9 @@ function initializeDomElements() {
     boxChangePass = document.getElementById('changePassModal');
     boxAdminEdit = document.getElementById('adminEditUserModal');
     boxVerification = document.getElementById('verificationModal');
+    
+    // Init UI Dinamis saat load
+    initDynamicUI();
 }
 
 /* ============================================== */
@@ -242,22 +250,17 @@ function formatDate(dateString) {
 }
 
 /* ============================================== */
-/* --- OTP HANDLING (PERBAIKAN UTAMA) --- */
+/* --- OTP HANDLING --- */
 /* ============================================== */
 
-// 1. Fungsi ini dipanggil dari HTML oninput="checkAutoSubmitOtp(this)"
 function checkAutoSubmitOtp(el) {
     const val = el.value.toString();
-    
-    // Batasi input maksimal 6 karakter
     if(val.length > 6) {
         el.value = val.slice(0, 6);
     }
-    
-    // Auto Submit jika sudah 6 karakter
     if(el.value.length === 6) {
-        el.blur(); // Hilangkan keyboard (opsional)
-        handleVerifyOtp(); // Panggil fungsi verifikasi
+        el.blur(); 
+        handleVerifyOtp(); 
     }
 }
 
@@ -289,7 +292,6 @@ function switchAuth(type) {
     } 
     else if(type === 'otp') { 
         boxOtp.style.display = 'block'; 
-        // Focus ke input OTP (ID SUDAH DIPERBAIKI: otpInputLong)
         setTimeout(() => {
             const input = document.getElementById('otpInputLong');
             if(input) { input.value = ''; input.focus(); }
@@ -363,13 +365,11 @@ async function refreshUserData() {
     }
 }
 
-/* --- VERIFY OTP & AUTO LOGIN (SUDAH DIPERBAIKI) --- */
+/* --- VERIFY OTP & AUTO LOGIN --- */
 async function handleVerifyOtp() {
-    // FIX: Mengambil ID yang sesuai dengan di HTML (otpInputLong)
     const inputLong = document.getElementById('otpInputLong');
     let otp = inputLong ? inputLong.value : '';
 
-    // Validasi panjang OTP
     if (!otp || otp.toString().length < 6) {
         return showAlert("Masukkan 6 digit kode OTP!", "Peringatan");
     }
@@ -384,12 +384,10 @@ async function handleVerifyOtp() {
         const data = await res.json();
 
         if(data.success) {
-            // AUTO LOGIN
             await performAutoLogin(tempRegisterData.username, tempRegisterData.password);
         } else {
             showAlert("Kode OTP Salah atau Kadaluarsa.", "Gagal");
             setLoading('btnVerifyBtn', false, "VERIFIKASI");
-            // Reset input jika salah
             if(inputLong) inputLong.value = '';
         }
     } catch(e){
@@ -412,6 +410,7 @@ async function performAutoLogin(loginInput, password) {
             checkLoginState();
             
             const isAdminUser = isAdmin(data.userData.email);
+            // Redirect sesuai role
             switchMainTab(isAdminUser ? 'admin' : 'home');
             
             showAlert(`Selamat datang, ${data.userData.username}!`, "Login Sukses");
@@ -444,7 +443,10 @@ async function handleLogin(e) {
             closeAuthModal();
             localStorage.setItem('user', JSON.stringify(data.userData));
             checkLoginState();
-            switchMainTab(isAdmin(data.userData.email) ? 'admin' : 'home');
+            
+            // Cek role untuk redirect dan update navbar
+            const isAdminUser = isAdmin(data.userData.email);
+            switchMainTab(isAdminUser ? 'admin' : 'home');
             
             showAlert("Berhasil masuk ke akun Anda.", "Login Sukses");
         } else {
@@ -520,7 +522,7 @@ function switchMainTab(tabName) {
         const firstMenu = document.querySelector('.admin-menu-item'); 
         if(firstMenu) loadAdminTab('users', firstMenu);
     }
-    // Update URL tanpa reload
+    
     history.pushState("", document.title, window.location.pathname + window.location.search);
 }
 
@@ -582,6 +584,9 @@ function setupSliderSwipe() {
 function checkLoginState() {
     const userSession = localStorage.getItem('user');
     const headerAuthArea = document.getElementById('headerAuthArea');
+    
+    // --- PENTING: Update navbar setiap kali status login dicek ---
+    renderNavbar(); 
 
     if (userSession) {
         const user = JSON.parse(userSession);
@@ -592,23 +597,10 @@ function checkLoginState() {
 
         headerAuthArea.innerHTML = `<div class="header-user-area" onclick="switchMainTab('profile')"><span class="user-name-header">${user.username}</span>${headerAvatar}</div>`;
         renderAuthPages(true, user, isOwner);
-        toggleAdminNav(isOwner);
+        
     } else {
         headerAuthArea.innerHTML = `<button class="btn-login-header" onclick="openAuthModal('login')"><i class="fas fa-user-circle"></i> Masuk / Daftar</button>`;
         renderAuthPages(false, null, false);
-        toggleAdminNav(false);
-    }
-}
-
-function toggleAdminNav(isOwner) {
-    const navTrans = document.getElementById('nav-transaksi');
-    const navAdmin = document.getElementById('nav-admin');
-    if (isOwner) {
-        if(navTrans) navTrans.style.display = 'none';
-        if(navAdmin) navAdmin.style.display = 'flex';
-    } else {
-        if(navTrans) navTrans.style.display = 'flex';
-        if(navAdmin) navAdmin.style.display = 'none';
     }
 }
 
@@ -616,6 +608,7 @@ function renderAuthPages(isLoggedIn, user, isOwner) {
     const profileContent = document.getElementById('profile-content');
     const settingsContent = document.getElementById('pengaturan-content');
     const navProfileImg = document.querySelector('.floating-circle');
+    
     const loginPromptHTML = `
         <div class="auth-required-state">
             <i class="fas fa-lock lock-icon"></i><p>Silakan Login untuk mengakses halaman ini.</p>
@@ -625,10 +618,12 @@ function renderAuthPages(isLoggedIn, user, isOwner) {
     if (!isLoggedIn) {
         if(profileContent) profileContent.innerHTML = loginPromptHTML;
         if(settingsContent) settingsContent.innerHTML = loginPromptHTML;
+        // Reset foto profile di navbar
         if(navProfileImg) navProfileImg.innerHTML = `<img src="https://api.deline.web.id/76NssFHmcI.png">`;
     } else {
         const userInitial = user.username.charAt(0).toUpperCase();
 
+        // Update foto profile di navbar (jika elemennya ada saat render ini dipanggil)
         if(navProfileImg) {
             navProfileImg.innerHTML = user.profilePic 
                 ? `<img src="${user.profilePic}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
@@ -643,6 +638,7 @@ function renderAuthPages(isLoggedIn, user, isOwner) {
                     <div class="profile-view-avatar">${avatarDisplay}</div>
                     <div style="color:white; margin-top:10px; font-weight:bold;">${user.username}</div>
                     <div style="color:#dbeafe; font-size:12px; margin-top:2px;">Bergabung: ${formatDate(user.createdAt)}</div>
+                    ${isOwner ? '<div class="badge-admin-website" style="margin-top:10px;">ADMIN</div>' : ''}
                 </div>
                 <div class="profile-details-card">
                     <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value">${user.username}</span></div>
