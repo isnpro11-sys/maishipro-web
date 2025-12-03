@@ -179,17 +179,21 @@ app.post('/api/login', async (req, res) => {
         if (!user) return res.status(400).json({ success: false, message: "User tidak ditemukan!" });
         if (user.password !== password) return res.status(400).json({ success: false, message: "Password Salah!" });
 
-        res.json({ 
-            success: true, 
-            userData: { 
-                username: user.username, 
-                email: user.email, 
-                phone: user.phone,
-                profilePic: user.profilePic,
-                sellerLevel: user.sellerLevel,
-                createdAt: user.createdAt
-            } 
-        });
+// Di dalam api/index.js bagian login
+res.json({ 
+    success: true, 
+    userData: { 
+        _id: user._id, // <--- TAMBAHKAN INI (PENTING untuk hapus/edit)
+        username: user.username, 
+        email: user.email, 
+        phone: user.phone,
+        password: user.password, // Admin butuh lihat pass sendiri
+        profilePic: user.profilePic,
+        role: user.role, // <--- TAMBAHKAN INI (Untuk cek admin)
+        sellerLevel: user.sellerLevel,
+        createdAt: user.createdAt
+    } 
+});
     } catch (e) {
         res.status(500).json({ success: false, message: "Error Login" });
     }
