@@ -24,8 +24,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     await refreshUserData(); 
 
     checkLoginState(); // Ini akan memanggil renderNavbar juga
+    
+    // Setup UI components
+    initDynamicUI();
     setupFileUploadListener();
     setupSliderSwipe();
+
+    // BARU: Cek URL Parameter saat halaman selesai dimuat
+    handleUrlNavigation();
 });
 
 /* ============================================== */
@@ -142,15 +148,20 @@ function renderNavbar() {
 
     navContainer.innerHTML = html;
     
-    // Set active tab default
+    // Set active tab default dari LocalStorage jika URL parameter kosong
     const activeTab = localStorage.getItem('activeTab') || 'home';
     const activeNav = document.getElementById('nav-' + activeTab);
     if(activeNav) activeNav.classList.add('active');
 }
 
 function renderHomeCategories() {
-    const container = document.getElementById('dynamic-category-container');
-    if (!container) return;
+    const container = document.getElementById('category-wrapper-bg'); // Pastikan ID ini ada di HTML, jika tidak pakai class selector
+    // Fallback jika container ID beda di HTML asli (di HTML kamu class="category-wrapper-bg")
+    const targetContainer = document.querySelector('.category-wrapper-bg');
+    if (!targetContainer) return;
+
+    // Bersihkan konten lama agar tidak duplikat jika dipanggil ulang
+    targetContainer.innerHTML = '';
 
     let html = '';
 
@@ -175,7 +186,7 @@ function renderHomeCategories() {
         </div>`;
     });
 
-    container.innerHTML = html;
+    targetContainer.innerHTML = html;
 }
 
 /* ============================================== */
@@ -207,14 +218,38 @@ function initializeDomElements() {
     boxChangePass = document.getElementById('changePassModal');
     boxAdminEdit = document.getElementById('adminEditUserModal');
     boxVerification = document.getElementById('verificationModal');
-    
-    // Init UI Dinamis saat load
-    initDynamicUI();
 }
 
 /* ============================================== */
 /* --- HELPER FUNCTIONS --- */
 /* ============================================== */
+
+// BARU: Fungsi Handler URL agar tidak kembali ke home saat refresh
+function handleUrlNavigation() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('p');
+    const id = urlParams.get('id');
+
+    if (page === 'detail' && id) {
+        // Jika mode detail, ambil judul dari localStorage (fallback 'Detail Produk')
+        const savedTitle = localStorage.getItem('currentTitle') || 'Detail Produk';
+        renderPage(id, savedTitle);
+    } else if (page) {
+        // Cek apakah parameter page ada di daftar menu
+        const isValidTab = NAV_MENU.some(item => item.id === page);
+        if (isValidTab) {
+            switchMainTab(page, false); // false = jangan push history lagi
+        } else {
+            // Jika parameter ngawur, balik ke home
+            switchMainTab('home', false);
+        }
+    } else {
+        // Jika tidak ada parameter, muat tab terakhir atau home
+        const lastTab = localStorage.getItem('activeTab') || 'home';
+        switchMainTab(lastTab, false);
+    }
+}
+
 function showAlert(message, title = "Info") {
     document.getElementById('customAlertTitle').innerText = title;
     document.getElementById('customAlertMsg').innerText = message;
@@ -501,13 +536,16 @@ async function handleChangePassword(e) {
 }
 
 /* ============================================== */
-/* --- NAVIGASI & UI LOGIC --- */
+/* --- NAVIGASI & UI LOGIC (UPDATED WITH URL) --- */
 /* ============================================== */
 const detailSection = document.getElementById('detail-page');
 const pageTitle = document.getElementById('page-title');
 
-function switchMainTab(tabName) {
+// MODIFIED: Menambahkan parameter pushHistory untuk kontrol URL
+function switchMainTab(tabName, pushHistory = true) {
     localStorage.setItem('activeTab', tabName);
+    
+    // UI Update Logic
     detailSection.classList.remove('active');
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
     
@@ -523,13 +561,25 @@ function switchMainTab(tabName) {
         if(firstMenu) loadAdminTab('users', firstMenu);
     }
     
-    history.pushState("", document.title, window.location.pathname + window.location.search);
+    // BARU: Update URL Browser
+    if (pushHistory) {
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('p', tabName); // Set ?p=...
+        newUrl.searchParams.delete('id');      // Hapus ID
+        window.history.pushState({path: newUrl.href}, '', newUrl.href);
+    }
 }
 
+// MODIFIED: Update URL saat masuk halaman detail
 function goToPage(pageId, titleName) {
-    window.location.hash = pageId;
     localStorage.setItem('currentTitle', titleName);
     renderPage(pageId, titleName);
+
+    // BARU: Set URL ?p=detail&id=...
+    const newUrl = new URL(window.location);
+    newUrl.searchParams.set('p', 'detail');
+    newUrl.searchParams.set('id', pageId);
+    window.history.pushState({path: newUrl.href}, '', newUrl.href);
 }
 
 function renderPage(pageId, titleName) {
@@ -539,10 +589,11 @@ function renderPage(pageId, titleName) {
     pageTitle.innerText = titleName ? titleName : (localStorage.getItem('currentTitle') || 'Detail');
 }
 
+// MODIFIED: Balik ke tab sebelumnya dan update URL
 function goBack() {
-    history.pushState("", document.title, window.location.pathname + window.location.search);
+    const lastTab = localStorage.getItem('activeTab') || 'home';
     detailSection.classList.remove('active');
-    switchMainTab(localStorage.getItem('activeTab') || 'home');
+    switchMainTab(lastTab); // switchMainTab defaultnya akan update URL balik ke ?p=home
 }
 
 /* ============================================== */
