@@ -12,6 +12,10 @@ let currentEmail = '';
 let cropper = null; 
 let productImages = []; // Menyimpan array base64 foto produk
 
+// Variabel Global untuk Detail Produk & Lightbox
+let currentDetailImages = [];
+let currentDetailIndex = 0;
+
 /* DOM Elements Global */
 let authOverlay, boxLogin, boxReg, boxOtp, boxForgot, boxChangePass, boxAdminEdit, boxVerification, boxAddProduct;
 
@@ -1320,9 +1324,21 @@ async function handleChangePassword(e) {
 /* --- 15. SINGLE PRODUCT DETAIL & SELLER LOGIC --- */
 /* ============================================== */
 
-// Global Variable untuk Carousel
-let currentDetailImages = [];
-let currentDetailIndex = 0;
+// Fungsi Geser Foto di Halaman Detail (Bukan Lightbox)
+function changeProductSlide(direction) {
+    currentDetailIndex += direction;
+    if (currentDetailIndex < 0) currentDetailIndex = currentDetailImages.length - 1;
+    if (currentDetailIndex >= currentDetailImages.length) currentDetailIndex = 0;
+    
+    const img = document.getElementById('detailMainImg');
+    const dots = document.querySelectorAll('#carouselDots .sp-dot');
+    
+    if(img) img.src = currentDetailImages[currentDetailIndex];
+    if(dots.length > 0) {
+        dots.forEach(d => d.classList.remove('active'));
+        if(dots[currentDetailIndex]) dots[currentDetailIndex].classList.add('active');
+    }
+}
 
 function openProductDetail(product) {
     // 1. UI Reset
@@ -1342,30 +1358,39 @@ function openProductDetail(product) {
     const buyArea = document.getElementById('floating-buy-area');
     
     const price = "Rp " + product.price.toLocaleString('id-ID');
-    const stock = product.stock || 1;
+    const stock = product.stock || 0;
+    const soldCount = Math.floor(Math.random() * 50) + 1; // Dummy terjual
+
+    // Update Gambar Header (Carousel Kecil di halaman)
+    const carouselDotsHtml = currentDetailImages.length > 1 
+        ? `<div class="sp-dots" id="carouselDots">
+             ${currentDetailImages.map((_, i) => `<div class="sp-dot ${i===0?'active':''}"></div>`).join('')}
+           </div>` 
+        : '';
     
-    // HTML Konten
+    const carouselArrowsHtml = currentDetailImages.length > 1
+        ? `<div class="sp-arrow left" onclick="changeProductSlide(-1)"><i class="fas fa-chevron-left"></i></div>
+           <div class="sp-arrow right" onclick="changeProductSlide(1)"><i class="fas fa-chevron-right"></i></div>`
+        : '';
+
+    // HTML Struktur Baru (Urutan: Judul -> Harga -> Deskripsi -> Seller -> Statistik)
     contentDiv.innerHTML = `
         <div class="sp-image-container">
             <img src="${currentDetailImages[0]}" class="sp-main-img" id="detailMainImg" onclick="openLightbox()">
-            
-            ${currentDetailImages.length > 1 ? `
-                <div class="sp-arrow left" onclick="changeProductSlide(-1)"><i class="fas fa-chevron-left"></i></div>
-                <div class="sp-arrow right" onclick="changeProductSlide(1)"><i class="fas fa-chevron-right"></i></div>
-                <div class="sp-dots" id="carouselDots">
-                    ${currentDetailImages.map((_, i) => `<div class="sp-dot ${i===0?'active':''}"></div>`).join('')}
-                </div>
-            ` : ''}
+            ${carouselArrowsHtml}
+            ${carouselDotsHtml}
         </div>
 
         <div class="sp-content">
-            <div class="sp-stock-badge-corner">
-                <i class="fas fa-check-circle"></i> Stok: ${stock}
-            </div>
+            <div class="sp-title">${product.title}</div>
 
             <div class="sp-price-tag">${price}</div>
-            <div class="sp-title">${product.title}</div>
-            
+
+            <span class="sp-desc-label">Deskripsi Produk</span>
+            <div class="sp-desc-box">
+                ${product.description.replace(/\n/g, '<br>')}
+            </div>
+
             <div class="sp-seller-box-clickable" onclick="openSellerProfile('${product.userId}')">
                 <img src="https://api.deline.web.id/76NssFHmcI.png" class="sp-seller-pic-small" id="miniSellerPic">
                 <div style="flex:1;">
@@ -1376,14 +1401,20 @@ function openProductDetail(product) {
                 <i class="fas fa-chevron-right" style="color:#ccc;"></i>
             </div>
 
-            <div style="font-weight:bold; margin: 20px 0 8px 0; color:#333;">Deskripsi Produk</div>
-            <div class="sp-desc-box">
-                ${product.description.replace(/\n/g, '<br>')}
+            <div class="product-stats-container">
+                <div class="stat-box-item">
+                    <span class="stat-label">Terjual</span>
+                    <span class="stat-value">${soldCount}</span>
+                </div>
+                <div class="stat-box-item">
+                    <span class="stat-label">Stok</span>
+                    <span class="stat-value">${stock}</span>
+                </div>
             </div>
         </div>
     `;
 
-    // Fetch gambar profil mini untuk kotak penjual (agar tidak statis)
+    // Fetch gambar profil mini seller
     fetchSellerMiniPic(product.userId);
 
     // 4. Setup Tombol Beli
@@ -1414,41 +1445,69 @@ function closeProductDetail() {
     document.getElementById('detail-page').classList.add('active');
 }
 
-/* --- LOGIKA CAROUSEL --- */
-function changeProductSlide(direction) {
+/* --- LOGIKA LIGHTBOX (ZOOM) TERBARU --- */
+function openLightbox() {
+    const modal = document.getElementById('lightboxModal');
+    
+    // Render Struktur Lightbox secara dinamis agar navigasi muncul
+    let dotsHtml = '';
+    if (currentDetailImages.length > 1) {
+        dotsHtml = currentDetailImages.map((_, i) => 
+            `<div class="lb-dot ${i === currentDetailIndex ? 'active' : ''}"></div>`
+        ).join('');
+    }
+
+    modal.innerHTML = `
+        <span class="close-lightbox" onclick="closeLightbox()">&times;</span>
+        
+        ${currentDetailImages.length > 1 ? `
+        <div class="lb-arrow left" onclick="changeLightboxSlide(event, -1)"><i class="fas fa-chevron-left"></i></div>
+        <div class="lb-arrow right" onclick="changeLightboxSlide(event, 1)"><i class="fas fa-chevron-right"></i></div>
+        ` : ''}
+
+        <div class="lightbox-content-wrapper">
+            <img id="lightboxImage" class="lightbox-image" src="${currentDetailImages[currentDetailIndex]}" onclick="closeLightbox()">
+        </div>
+
+        ${currentDetailImages.length > 1 ? `
+        <div class="lb-dots-container">
+            ${dotsHtml}
+        </div>` : ''}
+    `;
+
+    modal.classList.add('active');
+    modal.style.display = 'flex'; // Pastikan display flex
+}
+
+function closeLightbox() {
+    const modal = document.getElementById('lightboxModal');
+    modal.classList.remove('active');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300); // Tunggu animasi fade out
+}
+
+function changeLightboxSlide(event, direction) {
+    event.stopPropagation(); // Mencegah klik tembus ke overlay (biar gak close)
+    
     currentDetailIndex += direction;
     if (currentDetailIndex < 0) currentDetailIndex = currentDetailImages.length - 1;
     if (currentDetailIndex >= currentDetailImages.length) currentDetailIndex = 0;
-    updateCarouselUI();
-}
 
-function updateCarouselUI() {
-    const img = document.getElementById('detailMainImg');
-    const dots = document.querySelectorAll('.sp-dot');
-    
-    if(img) {
-        img.style.opacity = '0.5';
-        setTimeout(() => {
-            img.src = currentDetailImages[currentDetailIndex];
-            img.style.opacity = '1';
-        }, 150);
-    }
-
-    if(dots.length > 0) {
-        dots.forEach(d => d.classList.remove('active'));
-        if(dots[currentDetailIndex]) dots[currentDetailIndex].classList.add('active');
-    }
-}
-
-/* --- LOGIKA LIGHTBOX (ZOOM FOTO) --- */
-function openLightbox() {
-    const modal = document.getElementById('lightboxModal');
+    // Update Gambar
     const img = document.getElementById('lightboxImage');
-    img.src = currentDetailImages[currentDetailIndex];
-    modal.style.display = 'flex';
-}
-function closeLightbox() {
-    document.getElementById('lightboxModal').style.display = 'none';
+    if(img) img.src = currentDetailImages[currentDetailIndex];
+
+    // Update Dots di Lightbox
+    const dots = document.querySelectorAll('.lb-dot');
+    dots.forEach((d, i) => {
+        if(i === currentDetailIndex) d.classList.add('active');
+        else d.classList.remove('active');
+    });
+
+    // Sinkronisasi dengan halaman detail utama (opsional, agar pas ditutup posisinya sama)
+    const mainImg = document.getElementById('detailMainImg');
+    if(mainImg) mainImg.src = currentDetailImages[currentDetailIndex];
 }
 
 /* --- LOGIKA SELLER PROFILE MODAL --- */
@@ -1520,9 +1579,15 @@ function closeSellerProfile() {
 
 function viewSellerAvatarFull() {
     const src = document.getElementById('spSellerImg').src;
+    
+    // Gunakan Lightbox baru untuk Avatar juga
     const modal = document.getElementById('lightboxModal');
-    const img = document.getElementById('lightboxImage');
-    img.src = src;
+    modal.innerHTML = `
+        <span class="close-lightbox" onclick="closeLightbox()">&times;</span>
+        <div class="lightbox-content-wrapper">
+            <img id="lightboxImage" class="lightbox-image" src="${src}" onclick="closeLightbox()">
+        </div>
+    `;
+    modal.classList.add('active');
     modal.style.display = 'flex';
 }
-

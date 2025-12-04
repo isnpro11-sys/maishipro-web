@@ -1,5 +1,5 @@
 /* ========================================= */
-/* --- KODE LENGKAP STYLE.CSS --- */
+/* --- KODE LENGKAP STYLE.CSS (FINAL) --- */
 /* ========================================= */
 
 /* --- RESET & BASE --- */
@@ -14,9 +14,7 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .container { width: 100%; max-width: 100%; margin: 0; background: #fff; min-height: 100vh; overflow-x: hidden; position: relative; }
 
 /* Logo & Bars */
-.logo .fa-bars {
-    margin-right: 15px; 
-}
+.logo .fa-bars { margin-right: 15px; }
 
 /* --- HEADER --- */
 .header { background-color: #205081; padding: 15px; color: white; position: relative; z-index: 100; }
@@ -97,14 +95,14 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .floating-circle img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 .center-item span { margin-top: 22px; }
 
-/* --- HALAMAN DETAIL --- */
+/* --- HALAMAN UMUM (DETAIL DLL) --- */
 .detail-header { background: #205081; padding: 15px; color: white; display: flex; align-items: center; position: sticky; top: 0; z-index: 99; }
 .btn-back { margin-right: 15px; cursor: pointer; }
 .detail-title { font-weight: bold; font-size: 16px; }
 .detail-content { padding: 20px; min-height: 80vh; background: #f9f9f9; text-align: center; }
 .empty-state-placeholder { margin-top: 50px; border: 2px dashed #ddd; padding: 30px; border-radius: 10px; color: #999; }
 
-/* --- KONTEN DINAMIS & SETTINGS (LAMA) --- */
+/* --- SETTINGS & CONTENT --- */
 .dynamic-content { padding: 20px; min-height: 70vh; }
 .settings-group { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
 .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; font-size: 14px; color: #333; }
@@ -112,29 +110,7 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .settings-item:hover { background: #f9f9f9; }
 .settings-item i { width: 25px; color: #205081; font-size: 16px; }
 
-/* TOMBOL LOGOUT (STYLE LAMA) */
-.logout-container { margin-top: 30px; padding: 0 10px; }
-.btn-logout { width: 100%; background: #ffebeb; color: #e74c3c; border: 1px solid #e74c3c; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; transition: 0.2s; }
-.btn-logout:hover { background: #e74c3c; color: white; }
-
-/* --- EMPTY STATE & LOGIN BUTTON FIX --- */
-.auth-required-state {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 60vh; text-align: center; color: #666; padding: 20px;
-}
-.auth-required-state i.lock-icon { font-size: 60px; color: #e0e0e0; margin-bottom: 15px; }
-.auth-required-state p { margin-bottom: 25px; font-size: 14px; color: #888; }
-
-.btn-center-login {
-    background: #205081; color: white; border: none; padding: 12px 30px; border-radius: 50px;
-    font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center;
-    justify-content: center; gap: 10px; box-shadow: 0 4px 10px rgba(32, 80, 129, 0.3);
-    transition: transform 0.2s, background 0.2s; width: auto; min-width: 160px;
-}
-.btn-center-login:active { transform: scale(0.95); }
-.btn-center-login i { font-size: 16px; }
-
-/* --- AUTHENTICATION MODAL --- */
+/* --- AUTH MODAL --- */
 .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
 .auth-overlay.active { display: flex; animation: slideUp 0.3s ease; }
 .auth-box { background: #fff; width: 85%; max-width: 360px; padding: 30px 25px; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; text-align: center; }
@@ -142,793 +118,170 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .auth-title { color: #205081; font-weight: 800; font-size: 22px; margin: 10px 0 5px; }
 .auth-subtitle { color: #888; font-size: 13px; margin-bottom: 25px; }
 .icon-circle-top { width: 60px; height: 60px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; color: #205081; font-size: 24px; }
-
-/* Input Styling */
 .input-with-icon { position: relative; margin-bottom: 15px; }
 .input-with-icon input { width: 100%; padding: 12px 45px 12px 45px; border: 1px solid #e0e0e0; border-radius: 10px; background: #f9fafb; outline: none; font-size: 14px; transition: 0.3s; }
 .input-with-icon input:focus { border-color: #205081; background: #fff; box-shadow: 0 0 0 3px rgba(32,80,129,0.1); }
 .input-icon-left { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #bbb; }
-
-/* Password Toggle Icon */
 .password-toggle { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #bbb; z-index: 10; padding: 5px; }
-
-.otp-container { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
-.otp-field { width: 40px; height: 45px; border: 2px solid #eee; border-radius: 8px; font-size: 18px; font-weight: bold; text-align: center; outline: none; transition: 0.2s; }
-.otp-field:focus { border-color: #205081; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-
 .btn-auth-action { width: 100%; background: linear-gradient(135deg, #205081, #163a63); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; box-shadow: 0 5px 15px rgba(32,80,129,0.2); transition: 0.2s; }
 .btn-auth-action:active { transform: scale(0.98); }
 .forgot-link { color: #205081; font-weight: 600; cursor: pointer; font-size: 13px; }
 .mt-2 { margin-top: 15px; font-size: 13px; color: #666; }
-
 @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* ============================================== */
-/* --- NEW: PROFILE & SETTINGS UI UPDATE --- */
-/* ============================================== */
+/* --- PROFILE & SETTINGS NEW STYLES --- */
+.settings-page-wrapper { display: flex; flex-direction: column; min-height: 75vh; justify-content: space-between; }
+.profile-header-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; margin-top: 10px; }
+.avatar-wrapper { position: relative; width: 90px; height: 90px; }
+.avatar-circle-display { width: 100%; height: 100%; background-color: #fff; border: 2px solid #205081; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: #205081; box-shadow: 0 4px 10px rgba(0,0,0,0.1); object-fit: cover; }
+.camera-badge { position: absolute; bottom: 0; right: 0; background: #205081; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 2px solid #fff; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2; }
+.form-group-styled { margin-bottom: 15px; }
+.form-label { font-size: 12px; color: #666; margin-bottom: 5px; display: block; font-weight: bold; }
+.form-input-styled { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 10px; background: #f9f9f9; font-size: 14px; color: #333; outline: none; transition: 0.3s; }
+.form-input-styled.permanent { background: #e9ecef; color: #888; cursor: not-allowed; }
+.form-input-styled:not(.permanent):focus { border-color: #205081; background: #fff; }
+.form-input-styled.clickable { cursor: pointer; background: #fff; display: flex; align-items: center; justify-content: space-between; }
+.btn-logout-bottom { background: #ffebeb; color: #e74c3c; border: 1px solid #e74c3c; padding: 14px; border-radius: 12px; font-weight: bold; text-align: center; cursor: pointer; width: 100%; margin-top: 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
+.btn-logout-bottom:hover { background: #e74c3c; color: white; }
 
-/* Wrapper untuk Halaman Settings agar tombol logout ada di bawah */
-.settings-page-wrapper {
-    display: flex;
-    flex-direction: column;
-    min-height: 75vh; /* Sesuaikan agar pas layar */
-    justify-content: space-between;
-}
-
-/* Header Avatar (Settings) */
-.profile-header-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 25px;
-    margin-top: 10px;
-}
-
-.avatar-wrapper {
-    position: relative;
-    width: 90px;
-    height: 90px;
-}
-
-.avatar-circle-display {
-    width: 100%;
-    height: 100%;
-    background-color: #fff;
-    border: 2px solid #205081;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    font-weight: bold;
-    color: #205081;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    object-fit: cover;
-}
-
-/* Ikon Kamera Kecil */
-.camera-badge {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: #205081;
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    border: 2px solid #fff;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    z-index: 2;
-}
-
-/* Form Styling di Settings */
-.form-group-styled {
-    margin-bottom: 15px;
-}
-
-.form-label {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 5px;
-    display: block;
-    font-weight: bold;
-}
-
-.form-input-styled {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background: #f9f9f9;
-    font-size: 14px;
-    color: #333;
-    outline: none;
-    transition: 0.3s;
-}
-
-/* Input Readonly (Permanen) */
-.form-input-styled.permanent {
-    background: #e9ecef;
-    color: #888;
-    cursor: not-allowed;
-}
-
-/* Input Editable Focus */
-.form-input-styled:not(.permanent):focus {
-    border-color: #205081;
-    background: #fff;
-}
-
-/* Input Password Clickable */
-.form-input-styled.clickable {
-    cursor: pointer;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-/* Tombol Logout Spesifik (Posisi Bawah) */
-.btn-logout-bottom {
-    background: #ffebeb;
-    color: #e74c3c;
-    border: 1px solid #e74c3c;
-    padding: 14px;
-    border-radius: 12px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 20px;
-    margin-bottom: 20px; /* Jarak dari navbar bawah */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: 0.2s;
-}
-.btn-logout-bottom:hover {
-    background: #e74c3c;
-    color: white;
-}
-
-/* --- PROFILE PAGE (VIEW ONLY) STYLES --- */
-.profile-view-header {
-    background: #205081;
-    padding: 30px 20px 50px 20px; /* Padding bawah besar untuk overlap card */
-    text-align: center;
-    border-radius: 0 0 20px 20px;
-    margin: -15px -15px 0 -15px; /* Negatif margin untuk full width di dalam container padding */
-}
-
-.profile-view-avatar {
-    width: 80px;
-    height: 80px;
-    background: #fff;
-    border-radius: 50%;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    font-weight: bold;
-    color: #205081;
-    border: 4px solid rgba(255,255,255,0.3);
-}
-
-.profile-details-card {
-    background: white;
-    margin: -35px 20px 20px 20px; /* Naik ke atas menutupi header biru */
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    position: relative;
-    z-index: 5;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 14px;
-}
+/* --- PROFILE PAGE (VIEW ONLY) --- */
+.profile-view-header { background: #205081; padding: 30px 20px 50px 20px; text-align: center; border-radius: 0 0 20px 20px; margin: -15px -15px 0 -15px; }
+.profile-view-avatar { width: 80px; height: 80px; background: #fff; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #205081; border: 4px solid rgba(255,255,255,0.3); }
+.profile-details-card { background: white; margin: -35px 20px 20px 20px; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; z-index: 5; }
+.detail-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 .detail-row:last-child { border-bottom: none; }
 .detail-label { color: #888; }
 .detail-value { font-weight: bold; color: #333; }
 .level-badge { background: gold; color: #856404; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;}
 
+/* --- CROPPER MODAL --- */
+.crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+.crop-container { background: white; width: 90%; max-width: 400px; padding: 25px 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+.crop-container h3 { margin-bottom: 20px; color: #205081; font-size: 18px; }
+.img-container { max-height: 350px; width: 100%; overflow: hidden; margin-bottom: 20px; background: #f0f0f0; border-radius: 8px; }
+.img-container img { max-width: 100%; display: block; }
+.crop-actions { display: flex; justify-content: space-between; gap: 15px; }
+.btn-cancel, .btn-save { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+.btn-cancel { background: #e74c3c; color: white; }
+.btn-save { background: #205081; color: white; }
 
-/* ============================================== */
-/* --- TAMBAHAN STYLE BARU (CROP & FITUR BARU) --- */
-/* ============================================== */
-
-/* --- CROPPER MODAL STYLES --- */
-.crop-modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); /* Background gelap transparan */
-    z-index: 9999;
-    display: flex; justify-content: center; align-items: center;
-    backdrop-filter: blur(5px);
-}
-
-.crop-container {
-    background: white;
-    width: 90%;
-    max-width: 400px;
-    padding: 25px 20px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-}
-
-.crop-container h3 {
-    margin-bottom: 20px;
-    color: #205081;
-    font-size: 18px;
-}
-
-/* Wadah Gambar yang akan di-crop */
-.img-container {
-    max-height: 350px;
-    width: 100%;
-    overflow: hidden;
-    margin-bottom: 20px;
-    background: #f0f0f0;
-    border-radius: 8px;
-    /* Pastikan gambar di dalam cropper responsif */
-}
-
-.img-container img {
-    max-width: 100%;
-    display: block; 
-}
-
-/* Tombol Aksi Crop */
-.crop-actions {
-    display: flex; justify-content: space-between; gap: 15px;
-}
-
-.btn-cancel, .btn-save {
-    flex: 1; 
-    padding: 12px; 
-    border: none; 
-    border-radius: 8px; 
-    font-weight: bold; 
-    cursor: pointer; 
-    font-size: 14px;
-    transition: 0.2s;
-}
-
-.btn-cancel {
-    background: #e74c3c; 
-    color: white;
-}
-.btn-cancel:active { transform: scale(0.95); }
-
-.btn-save {
-    background: #205081; 
-    color: white;
-}
-.btn-save:active { transform: scale(0.95); }
-
-/* --- STYLE TAMBAHAN UNTUK DISPLAY FOTO PROFIL --- */
-/* Agar foto profil di navbar bawah selalu bulat sempurna dan tidak gepeng */
-.floating-circle img {
-    object-fit: cover;
-    border-radius: 50%;
-}
-/* ============================================== */
-/* --- ADMIN DASHBOARD STYLES --- */
-/* ============================================== */
-
-/* Navbar Item Admin (Icon A) */
-.fa-font { font-size: 18px; margin-bottom: 4px; } 
-
-/* Grid Menu Admin (4 Tombol Atas) */
-.admin-menu-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    padding: 15px;
-    background: #fff;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.admin-menu-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 10px 5px;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: bold;
-    color: #475569;
-    cursor: pointer;
-    transition: 0.2s;
-    text-align: center;
-}
-
-.admin-menu-item.active {
-    background: #205081;
-    color: white;
-    border-color: #205081;
-}
-
-.admin-menu-item i {
-    font-size: 18px;
-    margin-bottom: 5px;
-}
-
-/* User List Card Style */
-.admin-user-list {
-    padding: 0 15px 80px 15px; /* Padding bawah agar tidak ketutup navbar */
-}
-
-.user-card-admin {
-    background: #fff;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #eee;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    position: relative;
-}
-
-.user-card-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 13px;
-    border-bottom: 1px dashed #f0f0f0;
-    padding-bottom: 5px;
-}
-.user-card-row:last-child { border-bottom: none; margin-bottom: 0; }
-
-.u-label { color: #888; font-size: 12px; }
-.u-value { font-weight: bold; color: #333; word-break: break-all; text-align: right; max-width: 65%; }
-
-.admin-card-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 2px solid #f5f5f5;
-}
-
-.btn-admin-action {
-    flex: 1;
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
-.btn-edit-user { background: #ffeb3b; color: #205081; }
-.btn-del-user { background: #ffebeb; color: #e74c3c; }
-
-/* Badge Admin Profile */
-.badge-admin-website {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(231, 76, 60, 0.4);
-    letter-spacing: 0.5px;
-}
-
-/* ========================================= */
-/* --- TAMBAHKAN STYLE INI KE PALING BAWAH --- */
-/* ========================================= */
-
-/* --- STATUS BADGES --- */
-.status-badge {
-    margin-top: 10px;
-    padding: 5px 15px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: bold;
-    text-transform: uppercase;
-    display: inline-block;
-}
-.status-badge.green { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
-.status-badge.red { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
-.status-badge.yellow { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
-
-/* --- VERIFICATION ACTION ROW (SETTINGS) --- */
-.verification-action-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-    border-top: 1px dashed #eee;
-    padding-top: 10px;
-}
-.btn-verify-mini {
-    background: #205081;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-}
-.verify-status-text {
-    font-size: 12px;
-    color: #e74c3c;
-    font-weight: bold;
-}
-
-/* --- ADMIN ACCORDION STYLE --- */
-.admin-list-container { padding: 0 10px 80px 10px; }
-
-.admin-acc-item {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    overflow: hidden;
-}
+/* --- ADMIN DASHBOARD --- */
+.admin-menu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: #fff; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.admin-menu-item { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 5px; border-radius: 10px; font-size: 10px; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s; text-align: center; }
+.admin-menu-item.active { background: #205081; color: white; border-color: #205081; }
+.admin-menu-item i { font-size: 18px; margin-bottom: 5px; }
+.admin-acc-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
 .admin-acc-item.warning-border { border-left: 4px solid #f59e0b; }
-
-.admin-acc-header {
-    padding: 15px;
-    background: #f8fafc;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    color: #334155;
-    transition: 0.2s;
-    text-align: center;
-}
-.admin-acc-header:hover { background: #f1f5f9; }
-
-.admin-acc-body {
-    padding: 15px;
-    border-top: 1px solid #e2e8f0;
-    background: #fff;
-    font-size: 13px;
-    color: #64748b;
-}
-
-.acc-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    border-bottom: 1px dashed #f1f5f9;
-    padding-bottom: 4px;
-}
-.acc-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.btn-acc-action {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 12px;
-}
+.admin-acc-header { padding: 15px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 14px; font-weight: bold; color: #334155; transition: 0.2s; }
+.admin-acc-body { padding: 15px; border-top: 1px solid #e2e8f0; background: #fff; font-size: 13px; color: #64748b; }
+.acc-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #f1f5f9; padding-bottom: 4px; }
+.acc-actions { display: flex; gap: 10px; margin-top: 15px; }
+.btn-acc-action { flex: 1; padding: 8px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; font-size: 12px; }
 .btn-acc-action.edit { background: #3b82f6; }
 .btn-acc-action.delete { background: #ef4444; }
 .btn-acc-action.approve { background: #10b981; }
 .btn-acc-action.reject { background: #f59e0b; }
+.acc-img-grid { display: flex; gap: 5px; margin-top: 5px; overflow-x: auto; }
+.acc-img-thumb { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; border: 1px solid #ddd; }
+.badge-admin-website { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 5px rgba(231, 76, 60, 0.4); letter-spacing: 0.5px; }
 
-/* --- WARNING BOX IN MODAL --- */
-.warning-box {
-    background: #fffbeb;
-    border: 1px solid #fcd34d;
-    color: #92400e;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 11px;
-    margin-top: 10px;
-    text-align: left;
-    line-height: 1.4;
-}
+/* --- OTHER UTILS --- */
+.status-badge { margin-top: 10px; padding: 5px 15px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: inline-block; }
+.status-badge.green { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+.status-badge.red { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+.status-badge.yellow { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+.verification-action-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #eee; padding-top: 10px; }
+.btn-verify-mini { background: #205081; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+.verify-status-text { font-size: 12px; color: #e74c3c; font-weight: bold; }
+.warning-box { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 10px; border-radius: 8px; font-size: 11px; margin-top: 10px; text-align: left; line-height: 1.4; }
+.auth-required-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center; color: #666; padding: 20px; }
+.auth-required-state i.lock-icon { font-size: 60px; color: #e0e0e0; margin-bottom: 15px; }
+.btn-center-login { background: #205081; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 10px rgba(32, 80, 129, 0.3); transition: transform 0.2s, background 0.2s; width: auto; min-width: 160px; }
 
-/* ============================================== */
-/* --- PRODUK PAGE STYLES (NEW) --- */
-/* ============================================== */
-
-/* Kotak Tambah Produk */
-.add-product-wrapper {
-    border: 2px dashed #205081; /* Garis putus-putus biru */
-    background: #f0f9ff;
-    border-radius: 15px;
-    padding: 30px 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-}
-
-.add-product-wrapper:hover {
-    background: #e0f2fe;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(32, 80, 129, 0.15);
-}
-
-.add-product-wrapper:active {
-    transform: scale(0.98);
-}
-
-/* Lingkaran Ikon Plus */
-.plus-icon-circle {
-    width: 50px;
-    height: 50px;
-    background: #205081;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 10px rgba(32, 80, 129, 0.3);
-}
-
-/* Teks di dalam kotak */
-.add-text {
-    font-weight: bold;
-    color: #205081;
-    font-size: 14px;
-}
-
-/* Divider Teks "List Produk Anda" */
-.section-divider-text {
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 15px;
-    padding-left: 12px;
-    border-left: 4px solid #205081; /* Aksen garis di kiri */
-    display: flex;
-    align-items: center;
-}
-
-/* --- PRODUCT UPLOAD STYLES --- */
-.image-upload-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-top: 5px;
-}
-.add-img-box {
-    height: 70px;
-    border: 2px dashed #ccc;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ccc;
-    font-size: 20px;
-    cursor: pointer;
-}
-.preview-img-box {
-    height: 70px;
-    border-radius: 8px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    border: 1px solid #ddd;
-}
-.remove-img-btn {
-    position: absolute;
-    top: -5px; right: -5px;
-    background: #e74c3c;
-    color: white;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    font-size: 10px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-}
-
-/* --- PRODUCT CARD (LIST & PUBLIC) --- */
-.product-card-item {
-    background: white;
-    border: 1px solid #f0f0f0;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    padding: 10px;
-    display: flex;
-    gap: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-    position: relative;
-}
-.prod-thumb {
-    width: 70px; height: 70px;
-    border-radius: 8px;
-    object-fit: cover;
-    background: #eee;
-}
+/* --- PRODUCT & PUBLIC LIST --- */
+.add-product-wrapper { border: 2px dashed #205081; background: #f0f9ff; border-radius: 15px; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+.plus-icon-circle { width: 50px; height: 50px; background: #205081; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(32, 80, 129, 0.3); }
+.add-text { font-weight: bold; color: #205081; font-size: 14px; }
+.section-divider-text { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; padding-left: 12px; border-left: 4px solid #205081; display: flex; align-items: center; }
+.image-upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 5px; }
+.add-img-box { height: 70px; border: 2px dashed #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 20px; cursor: pointer; }
+.preview-img-box { height: 70px; border-radius: 8px; background-size: cover; background-position: center; position: relative; border: 1px solid #ddd; }
+.remove-img-btn { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.product-card-item { background: white; border: 1px solid #f0f0f0; border-radius: 10px; margin-bottom: 12px; padding: 10px; display: flex; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); position: relative; }
+.prod-thumb { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; background: #eee; }
 .prod-info { flex: 1; text-align: left; }
-.prod-title { font-weight: bold; font-size: 13px; margin-bottom: 4px; color: #333; line-height: 1.3;}
+.prod-title { font-weight: bold; font-size: 13px; margin-bottom: 4px; color: #333; line-height: 1.3; }
 .prod-price { color: #205081; font-weight: bold; font-size: 13px; }
-.prod-cat-badge { font-size: 10px; color: #888; background: #f8fafc; padding: 2px 6px; border-radius: 4px; margin-right: 5px; }
-
-/* Status Labels */
-.status-label {
-    position: absolute;
-    top: 10px; right: 10px;
-    font-size: 10px; font-weight: bold;
-    padding: 3px 8px; border-radius: 10px;
-}
+.status-label { position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 10px; }
 .st-proses { background: #fff3cd; color: #856404; }
 .st-terupload { background: #d1fae5; color: #065f46; }
 .st-ditolak { background: #fee2e2; color: #991b1b; }
-
-/* --- ADMIN ACCORDION DETAILS --- */
-.acc-img-grid {
-    display: flex; gap: 5px; margin-top: 5px; overflow-x: auto;
-}
-.acc-img-thumb {
-    width: 50px; height: 50px; border-radius: 5px; object-fit: cover; border: 1px solid #ddd;
-}
-
-/* ========================================= */
-/* --- PUBLIC PRODUCT GRID (TAMPILAN LIST) --- */
-/* ========================================= */
-.public-prod-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 Kolom */
-    gap: 10px;
-    padding: 10px;
-}
-
-.public-card {
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    border: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s;
-    cursor: pointer;
-}
-
+.public-prod-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; }
+.public-card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; transition: transform 0.2s; cursor: pointer; }
 .public-card:active { transform: scale(0.98); }
-
-.pc-img-box {
-    width: 100%;
-    aspect-ratio: 16/9; /* Persegi panjang seperti banner */
-    background: #f0f0f0;
-    overflow: hidden;
-}
-
-.pc-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.pc-info {
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.pc-title {
-    font-size: 13px;
-    font-weight: bold;
-    color: #333;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; /* Batasi 2 baris */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.3;
-}
-
-.pc-desc-short {
-    font-size: 10px;
-    color: #888;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.pc-price {
-    font-size: 14px;
-    font-weight: bold;
-    color: #e67e22; /* Warna Oranye mirip referensi */
-    margin-top: 2px;
-}
-
-.pc-stock-label {
-    font-size: 10px;
-    color: #205081;
-    background: #e0f2fe;
-    padding: 2px 6px;
-    border-radius: 4px;
-    width: fit-content;
-    margin-top: 2px;
-}
+.pc-img-box { width: 100%; aspect-ratio: 16/9; background: #f0f0f0; overflow: hidden; }
+.pc-img { width: 100%; height: 100%; object-fit: cover; }
+.pc-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.pc-title { font-size: 13px; font-weight: bold; color: #333; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+.pc-desc-short { font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-price { font-size: 14px; font-weight: bold; color: #e67e22; margin-top: 2px; }
+.pc-stock-label { font-size: 10px; color: #205081; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-top: 2px; }
 
 /* ========================================= */
 /* --- SINGLE PRODUCT PAGE (DETAIL VIEW) --- */
 /* ========================================= */
 
 .sp-image-container {
-    width: 100%;
+    position: relative;
     background: #000;
+    min-height: 250px;
     display: flex;
+    align-items: center;
     justify-content: center;
 }
 
 .sp-main-img {
     width: 100%;
-    max-height: 300px;
+    max-height: 350px; 
     object-fit: contain;
 }
 
+/* Kontainer utama konten produk */
 .sp-content {
+    position: relative; 
     padding: 20px;
     background: #fff;
     border-radius: 20px 20px 0 0;
-    margin-top: -15px; /* Efek overlap */
-    position: relative;
-    min-height: 50vh;
+    margin-top: -20px; /* Overlap ke atas */
+    min-height: 60vh;
+    padding-bottom: 100px; /* Ruang untuk tombol beli */
 }
 
-.sp-price-tag {
-    font-size: 22px;
-    font-weight: bold;
-    color: #e67e22;
-    margin-bottom: 5px;
-}
-
+/* 1. JUDUL (Paling Atas) */
 .sp-title {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     color: #2c3e50;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     line-height: 1.4;
 }
 
-.sp-stock-badge {
-    display: inline-block;
-    background: #d1fae5;
-    color: #065f46;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    font-weight: bold;
+/* 2. HARGA (Di bawah Judul) */
+.sp-price-tag {
+    font-size: 24px;
+    font-weight: 800;
+    color: #e67e22;
     margin-bottom: 20px;
+    display: block;
+}
+
+/* 3. DESKRIPSI (Di bawah Harga) */
+.sp-desc-label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
 }
 
 .sp-desc-box {
@@ -939,18 +292,66 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
     color: #475569;
     line-height: 1.6;
     border: 1px solid #e2e8f0;
+    margin-bottom: 20px;
 }
 
-.sp-seller-info {
-    margin-top: 20px;
+/* 4. SELLER BOX (Di bawah Deskripsi) */
+.sp-seller-box-clickable {
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 12px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 15px;
-    border-top: 1px solid #eee;
+    gap: 12px;
+    cursor: pointer;
+    background: #fff;
+    transition: 0.2s;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+.sp-seller-box-clickable:active { background: #f9f9f9; transform: scale(0.98); }
+
+.sp-seller-pic-small {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ddd;
 }
 
-/* Floating Buy Button */
+/* 5. KOTAK STATISTIK (2 Kolom: Terjual & Stok) */
+.product-stats-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 Kolom sama besar */
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.stat-box-item {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.stat-label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    color: #205081;
+}
+
+/* --- TOMBOL BELI WA --- */
 .floating-buy-container {
     position: fixed;
     bottom: 0;
@@ -964,7 +365,6 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
     justify-content: space-between;
     align-items: center;
 }
-
 .btn-buy-wa {
     width: 100%;
     background: #25D366; /* Warna WA */
@@ -982,45 +382,7 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 }
 .btn-buy-wa:hover { background: #20bd5a; }
 
-/* ========================================= */
-/* --- UPDATE TAMPILAN PRODUK (STOCK & CAROUSEL) --- */
-/* ========================================= */
-
-/* Container Content agar bisa absolute positioning */
-.sp-content {
-    position: relative; 
-    /* Pastikan padding-top cukup agar judul tidak nabrak stock */
-    padding-top: 25px; 
-}
-
-/* Stock Badge di Kanan Atas Putih */
-.sp-stock-badge-corner {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: #d1fae5;
-    color: #065f46;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 11px;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Carousel Container */
-.sp-image-container {
-    position: relative;
-    background: #000;
-    min-height: 250px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Tombol Geser (Arrows) */
+/* --- CAROUSEL ARROWS (Non-Lightbox) --- */
 .sp-arrow {
     position: absolute;
     top: 50%;
@@ -1038,7 +400,6 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 .sp-arrow.left { left: 10px; }
 .sp-arrow.right { right: 10px; }
 
-/* Indikator Titik (...) */
 .sp-dots {
     position: absolute;
     bottom: 15px;
@@ -1060,102 +421,107 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
     border-radius: 10px;
 }
 
-/* Seller Info Box (Clickable) */
-.sp-seller-box-clickable {
-    margin-top: 20px;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    background: #fff;
-    transition: 0.2s;
-}
-.sp-seller-box-clickable:active { background: #f9f9f9; transform: scale(0.98); }
-.sp-seller-pic-small {
-    width: 45px; height: 45px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid #ddd;
-}
-
-/* --- LIGHTBOX (ZOOM) STYLES --- */
+/* --- LIGHTBOX (ZOOM) STYLES TERBARU --- */
 .lightbox-overlay {
     position: fixed;
-    z-index: 3000;
+    z-index: 9999;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
-    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.95); /* Background gelap pekat */
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
     backdrop-filter: blur(5px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
 }
-.lightbox-content {
-    max-width: 95%;
-    max-height: 80vh;
+
+.lightbox-overlay.active { opacity: 1; visibility: visible; }
+
+/* Container Gambar Lightbox */
+.lightbox-content-wrapper {
+    position: relative;
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.lightbox-image {
+    max-width: 95vw;
+    max-height: 70vh;
     border-radius: 5px;
-    box-shadow: 0 0 20px rgba(255,255,255,0.1);
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    cursor: default; /* Kursor biasa karena klik gambar tidak menutup */
 }
+
+/* Tombol Close X */
 .close-lightbox {
     position: absolute;
-    top: 20px; right: 25px;
-    color: white; font-size: 35px;
-    cursor: pointer; font-weight: bold;
-}
-
-/* --- SELLER PROFILE MODAL STYLES --- */
-.seller-profile-box {
-    overflow: hidden;
-    position: relative;
-    width: 90%;
-    max-width: 400px;
-    background: #fff;
-}
-.seller-header-bg {
-    height: 80px;
-    background: linear-gradient(135deg, #205081, #1e3a8a);
-    position: relative;
-}
-.close-auth-white {
-    position: absolute; top: 10px; right: 15px;
-    color: white; font-size: 28px; cursor: pointer;
-}
-.seller-profile-content {
-    padding: 0 20px 20px 20px;
-    margin-top: -40px; 
-    text-align: center;
-    position: relative; 
-    z-index: 10;
-}
-
-.seller-avatar-container img {
-    width: 80px; height: 80px;
+    top: 20px; right: 20px;
+    color: white; 
+    font-size: 30px;
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.2);
     border-radius: 50%;
-    border: 4px solid white;
-    background: white;
-    object-fit: cover;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    cursor: zoom-in;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; 
+    font-weight: bold;
+    z-index: 10001;
 }
+
+/* Tombol Navigasi Panah Besar */
+.lb-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px; height: 60px; /* Ukuran Besar */
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    transition: 0.2s;
+}
+.lb-arrow:active { background: rgba(255,255,255,0.3); }
+.lb-arrow.left { left: 10px; }
+.lb-arrow.right { right: 10px; }
+
+/* Dots Hitam di Bawah Gambar */
+.lb-dots-container {
+    margin-top: 20px;
+    background: white; /* Kotak Putih */
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 10000;
+}
+
+.lb-dot {
+    width: 10px; height: 10px;
+    background: #ccc;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+.lb-dot.active {
+    background: #000; /* Hitam saat aktif */
+    transform: scale(1.2);
+}
+
+/* --- SELLER PROFILE MODAL --- */
+.seller-profile-box { overflow: hidden; position: relative; width: 90%; max-width: 400px; background: #fff; }
+.seller-header-bg { height: 80px; background: linear-gradient(135deg, #205081, #1e3a8a); position: relative; }
+.close-auth-white { position: absolute; top: 10px; right: 15px; color: white; font-size: 28px; cursor: pointer; }
+.seller-profile-content { padding: 0 20px 20px 20px; margin-top: -40px; text-align: center; position: relative; z-index: 10; }
+.seller-avatar-container img { width: 80px; height: 80px; border-radius: 50%; border: 4px solid white; background: white; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: zoom-in; }
 .seller-main-info { margin-top: 5px; margin-bottom: 15px; }
 .seller-main-info h3 { margin: 0; color: #333; font-size: 18px; }
-.seller-level-badge {
-    display: inline-block;
-    background: #ffeb3b; color: #205081;
-    font-size: 10px; font-weight: bold;
-    padding: 2px 8px; border-radius: 10px;
-    margin-top: 4px;
-}
-.seller-detail-rows {
-    background: #f8fafc;
-    border-radius: 10px;
-    padding: 10px;
-    text-align: left;
-    margin-bottom: 15px;
-}
-.sd-row {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 13px; color: #555; margin-bottom: 8px;
-}
+.seller-level-badge { display: inline-block; background: #ffeb3b; color: #205081; font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-top: 4px; }
+.seller-detail-rows { background: #f8fafc; border-radius: 10px; padding: 10px; text-align: left; margin-bottom: 15px; }
+.sd-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #555; margin-bottom: 8px; }
 .sd-row:last-child { margin-bottom: 0; }
 .sd-row i { color: #205081; width: 20px; text-align: center; }
