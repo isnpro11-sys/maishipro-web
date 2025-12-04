@@ -203,7 +203,7 @@ function initializeDomElements() {
     boxChangePass = document.getElementById('changePassModal');
     boxAdminEdit = document.getElementById('adminEditUserModal');
     boxVerification = document.getElementById('verificationModal');
-    boxAddProduct = document.getElementById('addProductModal'); // NEW
+    boxAddProduct = document.getElementById('addProductModal'); 
 }
 
 function handleUrlNavigation() {
@@ -458,6 +458,7 @@ function switchMainTab(tabName, pushHistory = true) {
     
     // UI Update
     detailSection.classList.remove('active');
+    document.getElementById('single-product-page').classList.remove('active'); // Tutup halaman detail jika ada
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
     
     const target = document.getElementById(tabName + '-page');
@@ -483,7 +484,7 @@ function switchMainTab(tabName, pushHistory = true) {
     }
 }
 
-// Fungsi Pindah ke Halaman Detail / Publik Produk
+// Fungsi Pindah ke Halaman Detail Kategori / List Produk Publik
 function goToPage(pageId, titleName) {
     localStorage.setItem('currentTitle', titleName);
     renderPage(pageId, titleName);
@@ -497,6 +498,7 @@ function goToPage(pageId, titleName) {
 function renderPage(pageId, titleName) {
     // Reset View
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    document.getElementById('single-product-page').classList.remove('active');
     detailSection.classList.add('active');
     window.scrollTo(0, 0);
     const finalTitle = titleName ? titleName : (localStorage.getItem('currentTitle') || 'Detail');
@@ -582,6 +584,7 @@ function openAddProductModal() {
     document.getElementById('prodTitle').value = "";
     document.getElementById('prodDesc').value = "";
     document.getElementById('prodPrice').value = "";
+    document.getElementById('prodStock').value = ""; // Reset Stock
     document.getElementById('prodPaymentMethod').value = "";
     document.getElementById('prodPaymentNum').value = "";
 }
@@ -662,10 +665,12 @@ function validatePhonePrefix(el) {
     }
 }
 
+// UPDATE: Handle Product Submit dengan Stock
 async function handleProductSubmit(e) {
     e.preventDefault();
     const user = JSON.parse(localStorage.getItem('user'));
     const rawPrice = document.getElementById('prodPrice').value.replace(/[^0-9]/g, '');
+    const stockVal = document.getElementById('prodStock').value; // AMBIL STOK
     
     const payload = {
         email: user.email,
@@ -674,6 +679,7 @@ async function handleProductSubmit(e) {
         title: document.getElementById('prodTitle').value,
         description: document.getElementById('prodDesc').value,
         price: parseInt(rawPrice),
+        stock: parseInt(stockVal) || 1, // KIRIM STOK DEFAULT 1
         paymentMethod: document.getElementById('prodPaymentMethod').value,
         paymentNumber: document.getElementById('prodPaymentNum').value,
         images: productImages
@@ -723,6 +729,7 @@ async function fetchUserProducts(email) {
 
             const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://placehold.co/100x100?text=No+Img';
             const price = "Rp " + p.price.toLocaleString('id-ID');
+            const stock = p.stock || 1;
 
             html += `
             <div class="product-card-item">
@@ -730,7 +737,7 @@ async function fetchUserProducts(email) {
                 <div class="prod-info">
                     <div class="prod-title">${p.title}</div>
                     <div class="prod-price">${price}</div>
-                    <div style="font-size:11px; color:#888; margin-top:3px;">${p.subCategory}</div>
+                    <div style="font-size:11px; color:#888; margin-top:3px;">Stok: ${stock} | ${p.subCategory}</div>
                 </div>
                 <div class="status-label ${statusBadge}">${statusText}</div>
             </div>`;
@@ -739,40 +746,50 @@ async function fetchUserProducts(email) {
     } catch(e) { listContainer.innerHTML = "Error loading products."; }
 }
 
-/* --- C. FETCH PUBLIC PRODUCTS --- */
+/* --- C. FETCH PUBLIC PRODUCTS (UPDATE GRID & ONCLICK) --- */
 async function fetchPublicProducts(categoryId) {
     const container = document.getElementById('public-product-list');
+    
+    // Set class grid agar tampilan 2 kolom (sesuai CSS)
+    container.className = 'public-prod-grid';
+    container.innerHTML = `<div style="grid-column: span 2; text-align:center; margin-top:20px;"><i class="fas fa-circle-notch fa-spin"></i> Memuat Produk...</div>`;
+
     try {
         const res = await fetch(`${API_URL}/products/public/${categoryId}`);
         const data = await res.json();
 
         if(!data.products || data.products.length === 0) {
-            container.innerHTML = `<div class="empty-state-placeholder"><p>Belum ada produk tersedia.</p></div>`;
+            container.innerHTML = `<div class="empty-state-placeholder" style="grid-column: span 2;"><p>Belum ada produk tersedia.</p></div>`;
             return;
         }
 
         let html = '';
         data.products.forEach(p => {
-            const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://placehold.co/100x100?text=No+Img';
+            const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://placehold.co/300x160?text=No+Img';
             const price = "Rp " + p.price.toLocaleString('id-ID');
+            const stock = p.stock ? p.stock : 1;
             
+            // Serialize data produk agar aman dimasukkan ke onclick
+            const safeProductData = JSON.stringify(p).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
             html += `
-            <div class="product-card-item" onclick="alert('Fitur Beli Detail akan dikembangkan selanjutnya!\\nKontak Penjual: ${p.userPhone}')">
-                <img src="${imgUrl}" class="prod-thumb">
-                <div class="prod-info">
-                    <div class="prod-title">${p.title}</div>
-                    <div class="prod-price">${price}</div>
-                    <div style="font-size:10px; color:#666; margin-top:5px;">
-                        <i class="fas fa-user-check" style="color:#10b981;"></i> ${p.username}
-                    </div>
+            <div class="public-card" onclick='openProductDetail(${safeProductData})'>
+                <div class="pc-img-box">
+                    <img src="${imgUrl}" class="pc-img" loading="lazy">
                 </div>
-                <div style="display:flex; align-items:center;">
-                    <i class="fas fa-chevron-right" style="color:#ccc;"></i>
+                <div class="pc-info">
+                    <div class="pc-title">${p.title}</div>
+                    <div class="pc-desc-short">${p.description}</div>
+                    <div class="pc-price">${price}</div>
+                    <div class="pc-stock-label"><i class="fas fa-box"></i> Stok: ${stock}</div>
                 </div>
             </div>`;
         });
         container.innerHTML = html;
-    } catch(e) { container.innerHTML = `<p style="text-align:center; color:red;">Gagal memuat produk.</p>`; }
+    } catch(e) { 
+        console.error(e);
+        container.innerHTML = `<p style="text-align:center; color:red; grid-column: span 2;">Gagal memuat produk.</p>`; 
+    }
 }
 
 /* ============================================== */
@@ -1135,6 +1152,7 @@ function renderAdminAccList(products) {
                     <div class="acc-row"><span>User:</span> <b>${p.username}</b></div>
                     <div class="acc-row"><span>Kategori:</span> <b>${p.subCategory}</b></div>
                     <div class="acc-row"><span>Harga:</span> <b>${p.price}</b></div>
+                    <div class="acc-row"><span>Stock:</span> <b>${p.stock || 1}</b></div>
                     <div class="acc-row"><span>Payment:</span> <b>${p.paymentMethod} - ${p.paymentNumber}</b></div>
                     <div style="margin:5px 0; font-style:italic;">"${p.description}"</div>
                     ${imgHtml}
@@ -1296,4 +1314,66 @@ async function handleChangePassword(e) {
         else { showAlert(data.message || "Gagal mengubah password.", "Gagal"); }
     } catch (e) { showAlert("Error Server", "Error"); } 
     finally { btn.innerText = oldText; btn.disabled = false; }
+}
+
+/* ============================================== */
+/* --- 15. SINGLE PRODUCT DETAIL PAGE LOGIC --- */
+/* ============================================== */
+
+function openProductDetail(product) {
+    // 1. Sembunyikan halaman lain
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    
+    // 2. Tampilkan halaman detail produk
+    const detailPage = document.getElementById('single-product-page');
+    detailPage.classList.add('active');
+    window.scrollTo(0, 0);
+
+    // 3. Render Konten
+    const contentDiv = document.getElementById('single-product-content');
+    const buyArea = document.getElementById('floating-buy-area');
+    
+    const imgUrl = (product.images && product.images.length > 0) ? product.images[0] : 'https://placehold.co/400x300?text=No+Img';
+    const price = "Rp " + product.price.toLocaleString('id-ID');
+    const stock = product.stock || 1;
+
+    contentDiv.innerHTML = `
+        <div class="sp-image-container">
+            <img src="${imgUrl}" class="sp-main-img">
+        </div>
+        <div class="sp-content">
+            <div class="sp-price-tag">${price}</div>
+            <div class="sp-title">${product.title}</div>
+            <div class="sp-stock-badge"><i class="fas fa-check-circle"></i> Stok Tersedia: ${stock}</div>
+            
+            <div style="font-weight:bold; margin-bottom:8px; color:#333;">Deskripsi Produk</div>
+            <div class="sp-desc-box">
+                ${product.description.replace(/\n/g, '<br>')}
+            </div>
+
+            <div class="sp-seller-info">
+                <i class="fas fa-store" style="font-size:20px; color:#205081;"></i>
+                <div>
+                    <div style="font-size:12px; color:#888;">Penjual</div>
+                    <div style="font-weight:bold;">${product.username || 'Seller'}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 4. Setup Tombol Beli (Direct WA)
+    const waMessage = `Halo, saya ingin membeli *${product.title}* seharga *${price}*. Apakah stok masih ada?`;
+    const waLink = `https://wa.me/${product.userPhone}?text=${encodeURIComponent(waMessage)}`;
+
+    buyArea.innerHTML = `
+        <button class="btn-buy-wa" onclick="window.open('${waLink}', '_blank')">
+            <i class="fab fa-whatsapp"></i> Beli Sekarang
+        </button>
+    `;
+}
+
+function closeProductDetail() {
+    // Kembali ke halaman detail kategori (list produk)
+    document.getElementById('single-product-page').classList.remove('active');
+    document.getElementById('detail-page').classList.add('active');
 }
