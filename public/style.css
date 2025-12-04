@@ -1122,9 +1122,12 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
 }
 .seller-profile-content {
     padding: 0 20px 20px 20px;
-    margin-top: -40px; /* Overlap header */
+    margin-top: -40px; 
     text-align: center;
+    position: relative; 
+    z-index: 10;
 }
+
 .seller-avatar-container img {
     width: 80px; height: 80px;
     border-radius: 50%;
