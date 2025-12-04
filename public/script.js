@@ -1,21 +1,22 @@
 /* ============================================== */
-/* --- KONFIGURASI BACKEND (WAJIB JALAN) --- */
+/* --- 1. KONFIGURASI & VARIABEL GLOBAL --- */
 /* ============================================== */
 const API_URL = "/api"; 
-// Masukkan semua email admin di array ini
+// Masukkan email admin di sini
 const ADMIN_EMAILS = ["ilyassyuhada00@gmail.com", "admin@gmail.com"]; 
 
-/* --- VARIABLES --- */
+/* --- VARIABLES STATE --- */
 let tempRegisterData = {}; 
 let authMode = 'register'; 
 let currentEmail = ''; 
 let cropper = null; 
+let productImages = []; // Menyimpan array base64 foto produk
 
 /* DOM Elements Global */
-let authOverlay, boxLogin, boxReg, boxOtp, boxForgot, boxChangePass, boxAdminEdit, boxVerification;
+let authOverlay, boxLogin, boxReg, boxOtp, boxForgot, boxChangePass, boxAdminEdit, boxVerification, boxAddProduct;
 
 /* ============================================== */
-/* --- INIT: SETUP AWAL --- */
+/* --- 2. INIT: SETUP AWAL --- */
 /* ============================================== */
 document.addEventListener("DOMContentLoaded", async () => {
     injectCustomElements();
@@ -24,35 +25,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 1. Jalankan Navigasi DULUAN agar tampilan langsung pindah sesuai URL
     handleUrlNavigation(); 
 
-    // Setup UI components lainnya yang tidak butuh data user
+    // Setup UI components
     setupFileUploadListener();
     setupSliderSwipe();
     
-    // 2. Baru setelah tampilan benar, kita ambil data user (Async)
+    // 2. Ambil data user terbaru (Async)
     await refreshUserData(); 
 
-    // 3. Update UI berdasarkan status login (navbar, foto profil, dll)
+    // 3. Update UI berdasarkan status login
     checkLoginState(); 
     
-    // 4. Render kategori
+    // 4. Render kategori home
     initDynamicUI();
 });
 
 /* ============================================== */
-/* --- KONFIGURASI DATA (PARAMETER) --- */
+/* --- 3. DATA KATEGORI & NAVBAR --- */
 /* ============================================== */
 
-// 1. DATA NAVBAR
 const NAV_MENU = [
     { id: 'home', icon: 'fa-home', label: 'Home' },
     { id: 'transaksi', icon: 'fa-exchange-alt', label: 'Transaksi' },
-    { id: 'admin', icon: 'fa-font', label: 'Admin', role: 'admin' }, // Khusus admin
-    { id: 'profile', type: 'profile', label: 'Profile' }, // Tipe khusus profile
+    { id: 'admin', icon: 'fa-font', label: 'Admin', role: 'admin' }, 
+    { id: 'profile', type: 'profile', label: 'Profile' },
     { id: 'produk', icon: 'fa-shopping-basket', label: 'Produk' },
     { id: 'pengaturan', icon: 'fa-cog', label: 'Pengaturan' }
 ];
 
-// 2. DATA KATEGORI & PRODUK (HOME PAGE)
 const HOME_CATEGORIES = [
     {
         title: "Akun Game",
@@ -102,7 +101,7 @@ const HOME_CATEGORIES = [
 ];
 
 /* ============================================== */
-/* --- FUNGSI RENDER DINAMIS --- */
+/* --- 4. UI RENDER FUNCTIONS --- */
 /* ============================================== */
 
 function initDynamicUI() {
@@ -114,23 +113,17 @@ function renderNavbar() {
     const navContainer = document.querySelector('.bottom-navbar');
     if (!navContainer) return;
 
-    // Cek user login untuk logika admin
     const user = JSON.parse(localStorage.getItem('user'));
     const isOwner = user && isAdmin(user.email);
 
     let html = '';
     
     NAV_MENU.forEach(item => {
-        // Hilangkan Transaksi jika Admin
         if (item.id === 'transaksi' && isOwner) return;
-
-        // Hilangkan Admin jika BUKAN Admin
         if (item.role === 'admin' && !isOwner) return;
 
-        // Render khusus untuk tombol Profile (karena ada foto)
         if (item.type === 'profile') {
             const profileImgSrc = (user && user.profilePic) ? user.profilePic : 'https://api.deline.web.id/76NssFHmcI.png';
-            
             html += `
             <div class="nav-item center-item" id="nav-${item.id}" onclick="switchMainTab('${item.id}')">
                 <div class="floating-circle">
@@ -139,7 +132,6 @@ function renderNavbar() {
                 <span>${item.label}</span>
             </div>`;
         } else {
-            // Render menu biasa
             html += `
             <div class="nav-item" id="nav-${item.id}" onclick="switchMainTab('${item.id}')">
                 <i class="fas ${item.icon}"></i>
@@ -150,7 +142,6 @@ function renderNavbar() {
 
     navContainer.innerHTML = html;
     
-    // Set active tab default dari LocalStorage jika URL parameter kosong
     const activeTab = localStorage.getItem('activeTab') || 'home';
     const activeNav = document.getElementById('nav-' + activeTab);
     if(activeNav) activeNav.classList.add('active');
@@ -161,7 +152,6 @@ function renderHomeCategories() {
     if (!targetContainer) return;
 
     targetContainer.innerHTML = '';
-
     let html = '';
 
     HOME_CATEGORIES.forEach(cat => {
@@ -179,17 +169,13 @@ function renderHomeCategories() {
                     <div class="cat-name">${item.name}</div>
                 </div>`;
         });
-
-        html += `
-            </div>
-        </div>`;
+        html += `</div></div>`;
     });
-
     targetContainer.innerHTML = html;
 }
 
 /* ============================================== */
-/* --- SYSTEM: INJECT STYLE & ALERT (OTOMATIS) --- */
+/* --- 5. SYSTEM: HELPER & DOM --- */
 /* ============================================== */
 function injectCustomElements() {
     const style = document.createElement('style');
@@ -217,13 +203,9 @@ function initializeDomElements() {
     boxChangePass = document.getElementById('changePassModal');
     boxAdminEdit = document.getElementById('adminEditUserModal');
     boxVerification = document.getElementById('verificationModal');
+    boxAddProduct = document.getElementById('addProductModal'); // NEW
 }
 
-/* ============================================== */
-/* --- HELPER FUNCTIONS --- */
-/* ============================================== */
-
-// Fungsi Handler URL agar tidak kembali ke home saat refresh
 function handleUrlNavigation() {
     const urlParams = new URLSearchParams(window.location.search);
     const page = urlParams.get('p');
@@ -235,7 +217,7 @@ function handleUrlNavigation() {
     } else if (page) {
         const isValidTab = NAV_MENU.some(item => item.id === page);
         if (isValidTab) {
-            switchMainTab(page, false); // false = jangan push history lagi
+            switchMainTab(page, false);
         } else {
             switchMainTab('home', false);
         }
@@ -280,23 +262,14 @@ function formatDate(dateString) {
 }
 
 /* ============================================== */
-/* --- OTP HANDLING --- */
+/* --- 6. AUTHENTICATION --- */
 /* ============================================== */
 
 function checkAutoSubmitOtp(el) {
     const val = el.value.toString();
-    if(val.length > 6) {
-        el.value = val.slice(0, 6);
-    }
-    if(el.value.length === 6) {
-        el.blur(); 
-        handleVerifyOtp(); 
-    }
+    if(val.length > 6) el.value = val.slice(0, 6);
+    if(el.value.length === 6) { el.blur(); handleVerifyOtp(); }
 }
-
-/* ============================================== */
-/* --- AUTHENTICATION FLOW --- */
-/* ============================================== */
 
 function openAuthModal(type) {
     authOverlay.classList.add('active');
@@ -375,34 +348,12 @@ async function handleRegisterRequest(e) {
     }
 }
 
-async function refreshUserData() {
-    const local = JSON.parse(localStorage.getItem("user"));
-    if (!local) return;
-
-    try {
-        const res = await fetch(`${API_URL}/get-user`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ email: local.email })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-            localStorage.setItem("user", JSON.stringify(data.userData));
-        }
-    } catch (e) {
-        console.error("Gagal refresh user:", e);
-    }
-}
-
 /* --- VERIFY OTP & AUTO LOGIN --- */
 async function handleVerifyOtp() {
     const inputLong = document.getElementById('otpInputLong');
     let otp = inputLong ? inputLong.value : '';
 
-    if (!otp || otp.toString().length < 6) {
-        return showAlert("Masukkan 6 digit kode OTP!", "Peringatan");
-    }
+    if (!otp || otp.toString().length < 6) return showAlert("Masukkan 6 digit kode OTP!", "Peringatan");
 
     setLoading('btnVerifyBtn', true, "VERIFIKASI");
 
@@ -438,10 +389,8 @@ async function performAutoLogin(loginInput, password) {
             closeAuthModal();
             localStorage.setItem('user', JSON.stringify(data.userData));
             checkLoginState();
-            
             const isAdminUser = isAdmin(data.userData.email);
             switchMainTab(isAdminUser ? 'admin' : 'home');
-            
             showAlert(`Selamat datang, ${data.userData.username}!`, "Login Sukses");
         } else {
             showAlert("Pendaftaran sukses, silakan login manual.", "Info");
@@ -472,10 +421,8 @@ async function handleLogin(e) {
             closeAuthModal();
             localStorage.setItem('user', JSON.stringify(data.userData));
             checkLoginState();
-            
             const isAdminUser = isAdmin(data.userData.email);
             switchMainTab(isAdminUser ? 'admin' : 'home');
-            
             showAlert("Berhasil masuk ke akun Anda.", "Login Sukses");
         } else {
             showAlert(data.message || "Username atau Password Salah!", "Login Gagal");
@@ -487,49 +434,21 @@ async function handleLogin(e) {
     }
 }
 
-/* ============================================== */
-/* --- CHANGE PASSWORD --- */
-/* ============================================== */
-function openChangePassModal() {
-    closeAuthModal(); 
-    setTimeout(() => {
-        authOverlay.classList.add('active'); 
-        boxChangePass.style.display = 'block'; 
-        boxChangePass.style.zIndex = '2001';
-    }, 150);
-}
-
-async function handleChangePassword(e) {
-    e.preventDefault();
-    const user = JSON.parse(localStorage.getItem('user'));
-    const oldPass = document.getElementById('oldPass').value;
-    const newPass = document.getElementById('newPass').value;
-
-    const btn = e.target.querySelector('button');
-    const oldText = btn.innerText;
-    btn.innerHTML = "Memproses..."; btn.disabled = true;
-
+async function refreshUserData() {
+    const local = JSON.parse(localStorage.getItem("user"));
+    if (!local) return;
     try {
-        const res = await fetch(`${API_URL}/change-password`, {
-            method: 'POST', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ email: user.email, oldPass, newPass })
+        const res = await fetch(`${API_URL}/get-user`, {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email: local.email })
         });
         const data = await res.json();
-        if(data.success) {
-            showAlert("Password berhasil diperbarui!", "Sukses");
-            closeAuthModal();
-        } else {
-            showAlert(data.message || "Gagal mengubah password.", "Gagal");
-        }
-    } catch (e) {
-        showAlert("Error Server", "Error");
-    } finally {
-        btn.innerText = oldText; btn.disabled = false;
-    }
+        if (data.success) localStorage.setItem("user", JSON.stringify(data.userData));
+    } catch (e) { console.error("Gagal refresh user:", e); }
 }
 
 /* ============================================== */
-/* --- NAVIGASI & UI LOGIC (UPDATED WITH PRODUK) --- */
+/* --- 7. NAVIGASI HALAMAN & TAB --- */
 /* ============================================== */
 const detailSection = document.getElementById('detail-page');
 const pageTitle = document.getElementById('page-title');
@@ -537,7 +456,7 @@ const pageTitle = document.getElementById('page-title');
 function switchMainTab(tabName, pushHistory = true) {
     localStorage.setItem('activeTab', tabName);
     
-    // UI Update Logic
+    // UI Update
     detailSection.classList.remove('active');
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
     
@@ -548,18 +467,14 @@ function switchMainTab(tabName, pushHistory = true) {
     const activeNav = document.getElementById('nav-' + tabName);
     if (activeNav) activeNav.classList.add('active');
 
-    // --- LOGIKA HALAMAN PRODUK ---
-    if(tabName === 'produk') {
-        renderProdukPage();
-    }
-    // -----------------------------
-
+    // LOGIKA HALAMAN KHUSUS
+    if(tabName === 'produk') renderProdukPage();
     if(tabName === 'admin') {
         const firstMenu = document.querySelector('.admin-menu-item'); 
         if(firstMenu) loadAdminTab('users', firstMenu);
     }
     
-    // Update URL Browser
+    // History Browser
     if (pushHistory) {
         const newUrl = new URL(window.location);
         newUrl.searchParams.set('p', tabName); 
@@ -568,7 +483,7 @@ function switchMainTab(tabName, pushHistory = true) {
     }
 }
 
-// Update URL saat masuk halaman detail
+// Fungsi Pindah ke Halaman Detail / Publik Produk
 function goToPage(pageId, titleName) {
     localStorage.setItem('currentTitle', titleName);
     renderPage(pageId, titleName);
@@ -580,10 +495,28 @@ function goToPage(pageId, titleName) {
 }
 
 function renderPage(pageId, titleName) {
+    // Reset View
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
     detailSection.classList.add('active');
     window.scrollTo(0, 0);
-    pageTitle.innerText = titleName ? titleName : (localStorage.getItem('currentTitle') || 'Detail');
+    const finalTitle = titleName ? titleName : (localStorage.getItem('currentTitle') || 'Detail');
+    pageTitle.innerText = finalTitle;
+    
+    // Render Konten (List Produk Publik)
+    const contentDiv = document.getElementById('page-content');
+    contentDiv.innerHTML = `
+        <div style="text-align:center; padding:20px;">
+            <i class="fas fa-gamepad" style="font-size:40px; color:#205081; margin-bottom:10px;"></i>
+            <h3>${finalTitle}</h3>
+            <p style="font-size:12px; color:#666;">Daftar produk tersedia dari seller terverifikasi.</p>
+        </div>
+        <div id="public-product-list" style="padding-bottom:50px;">
+            <div style="text-align:center; margin-top:20px;"><i class="fas fa-circle-notch fa-spin"></i> Memuat Produk...</div>
+        </div>
+    `;
+
+    // Fetch Produk Publik
+    fetchPublicProducts(pageId);
 }
 
 function goBack() {
@@ -593,13 +526,14 @@ function goBack() {
 }
 
 /* ============================================== */
-/* --- LOGIKA HALAMAN PRODUK (NEW) --- */
+/* --- 8. FITUR PRODUK (UPLOAD & LIST) --- */
 /* ============================================== */
+
+/* --- A. RENDER HALAMAN PRODUK SAYA --- */
 function renderProdukPage() {
     const container = document.getElementById('produk-content');
     if (!container) return;
 
-    // 1. Cek Login
     const user = JSON.parse(localStorage.getItem('user'));
     
     if (!user) {
@@ -614,27 +548,235 @@ function renderProdukPage() {
         return;
     }
 
-    // 2. Render Tampilan Tambah Produk & List
     container.innerHTML = `
-        <div class="add-product-wrapper" onclick="showAlert('Fitur tambah produk akan segera hadir!', 'Info')">
-            <div class="plus-icon-circle">
-                <i class="fas fa-plus"></i>
-            </div>
+        <div class="add-product-wrapper" onclick="handleClickAddProduct()">
+            <div class="plus-icon-circle"><i class="fas fa-plus"></i></div>
             <span class="add-text">Tambahkan Produk</span>
         </div>
-
         <div class="section-divider-text">List Produk Anda</div>
-
         <div id="user-product-list">
-            <div class="empty-state-placeholder" style="margin-top:10px; border:none; background:#f9f9f9;">
-                <p style="font-size:13px;">Anda belum memiliki produk.</p>
-            </div>
+            <div style="text-align:center; margin-top:20px;"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
         </div>
     `;
+
+    fetchUserProducts(user.email);
+}
+
+function handleClickAddProduct() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user.verificationStatus !== 'verified') {
+        showAlert("Akun Anda belum terverifikasi! Silakan verifikasi identitas di menu Pengaturan.", "Akses Ditolak");
+        setTimeout(() => { switchMainTab('pengaturan'); }, 1500);
+        return;
+    }
+    openAddProductModal();
+}
+
+/* --- B. MODAL & FORM ADD PRODUCT --- */
+function openAddProductModal() {
+    boxAddProduct.style.display = 'flex';
+    productImages = [];
+    renderImagePreviews();
+    document.getElementById('prodMainCat').value = "";
+    document.getElementById('subCatContainer').style.display = 'none';
+    document.getElementById('prodTitle').value = "";
+    document.getElementById('prodDesc').value = "";
+    document.getElementById('prodPrice').value = "";
+    document.getElementById('prodPaymentMethod').value = "";
+    document.getElementById('prodPaymentNum').value = "";
+}
+
+function closeAddProductModal() {
+    boxAddProduct.style.display = 'none';
+}
+
+function updateSubCategories() {
+    const main = document.getElementById('prodMainCat').value;
+    const subSelect = document.getElementById('prodSubCat');
+    const container = document.getElementById('subCatContainer');
+    
+    subSelect.innerHTML = "";
+    container.style.display = main ? 'block' : 'none';
+
+    let options = [];
+    const categoryData = HOME_CATEGORIES.find(c => c.title === main);
+    if(categoryData) options = categoryData.items;
+
+    options.forEach(opt => {
+        const el = document.createElement('option');
+        el.value = opt.id;
+        el.innerText = opt.name;
+        subSelect.appendChild(el);
+    });
+}
+
+function triggerProductImgUpload() {
+    if(productImages.length >= 5) return showAlert("Maksimal 5 Foto.", "Info");
+    document.getElementById('prodImgInput').click();
+}
+
+function handleProductImgChange(input) {
+    if (input.files) {
+        const files = Array.from(input.files);
+        if(files.length + productImages.length > 5) return showAlert("Total foto tidak boleh lebih dari 5", "Warning");
+
+        files.forEach(file => {
+            if(file.size > 2 * 1024 * 1024) return showAlert(`File ${file.name} terlalu besar (Max 2MB)`, "Error");
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                productImages.push(e.target.result);
+                renderImagePreviews();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    input.value = ""; 
+}
+
+function renderImagePreviews() {
+    const grid = document.getElementById('imagePreviewGrid');
+    grid.innerHTML = `<div class="add-img-box" onclick="triggerProductImgUpload()"><i class="fas fa-plus"></i></div>`;
+    productImages.forEach((img, idx) => {
+        const div = document.createElement('div');
+        div.className = 'preview-img-box';
+        div.style.backgroundImage = `url(${img})`;
+        div.innerHTML = `<div class="remove-img-btn" onclick="removeProductImg(${idx})"><i class="fas fa-times"></i></div>`;
+        grid.insertBefore(div, grid.firstChild);
+    });
+}
+
+function removeProductImg(index) {
+    productImages.splice(index, 1);
+    renderImagePreviews();
+}
+
+function formatPriceInput(el) {
+    let val = el.value.replace(/[^0-9]/g, '');
+    el.value = val ? "Rp " + parseInt(val).toLocaleString('id-ID') : "";
+}
+
+function validatePhonePrefix(el) {
+    if(el.value.length >= 2 && !el.value.startsWith('08')) {
+        showAlert("Nomor harus diawali 08", "Error");
+        el.value = '08';
+    }
+}
+
+async function handleProductSubmit(e) {
+    e.preventDefault();
+    const user = JSON.parse(localStorage.getItem('user'));
+    const rawPrice = document.getElementById('prodPrice').value.replace(/[^0-9]/g, '');
+    
+    const payload = {
+        email: user.email,
+        mainCategory: document.getElementById('prodMainCat').value,
+        subCategory: document.getElementById('prodSubCat').value,
+        title: document.getElementById('prodTitle').value,
+        description: document.getElementById('prodDesc').value,
+        price: parseInt(rawPrice),
+        paymentMethod: document.getElementById('prodPaymentMethod').value,
+        paymentNumber: document.getElementById('prodPaymentNum').value,
+        images: productImages
+    };
+
+    setLoading('btnUploadProd', true, "UPLOAD PRODUK");
+    try {
+        const res = await fetch(`${API_URL}/products/add`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(data.success) {
+            showAlert("Produk berhasil dikirim! Menunggu persetujuan Admin.", "Sukses");
+            closeAddProductModal();
+            renderProdukPage(); 
+        } else {
+            showAlert(data.message || "Gagal upload.", "Gagal");
+        }
+    } catch(e) {
+        showAlert("Error: File mungkin terlalu besar.", "Gagal");
+    } finally {
+        setLoading('btnUploadProd', false, "UPLOAD PRODUK");
+    }
+}
+
+async function fetchUserProducts(email) {
+    const listContainer = document.getElementById('user-product-list');
+    try {
+        const res = await fetch(`${API_URL}/products/my-products`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        
+        if(!data.products || data.products.length === 0) {
+            listContainer.innerHTML = `<div class="empty-state-placeholder" style="margin-top:10px; border:none; background:#f9f9f9;"><p style="font-size:13px;">Belum ada produk.</p></div>`;
+            return;
+        }
+
+        let html = '';
+        data.products.forEach(p => {
+            let statusBadge = '', statusText = '';
+            if(p.status === 'pending') { statusBadge = 'st-proses'; statusText = 'Proses'; } 
+            else if (p.status === 'active') { statusBadge = 'st-terupload'; statusText = 'Terupload'; } 
+            else { statusBadge = 'st-ditolak'; statusText = 'Tidak Terupload'; }
+
+            const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://placehold.co/100x100?text=No+Img';
+            const price = "Rp " + p.price.toLocaleString('id-ID');
+
+            html += `
+            <div class="product-card-item">
+                <img src="${imgUrl}" class="prod-thumb">
+                <div class="prod-info">
+                    <div class="prod-title">${p.title}</div>
+                    <div class="prod-price">${price}</div>
+                    <div style="font-size:11px; color:#888; margin-top:3px;">${p.subCategory}</div>
+                </div>
+                <div class="status-label ${statusBadge}">${statusText}</div>
+            </div>`;
+        });
+        listContainer.innerHTML = html;
+    } catch(e) { listContainer.innerHTML = "Error loading products."; }
+}
+
+/* --- C. FETCH PUBLIC PRODUCTS --- */
+async function fetchPublicProducts(categoryId) {
+    const container = document.getElementById('public-product-list');
+    try {
+        const res = await fetch(`${API_URL}/products/public/${categoryId}`);
+        const data = await res.json();
+
+        if(!data.products || data.products.length === 0) {
+            container.innerHTML = `<div class="empty-state-placeholder"><p>Belum ada produk tersedia.</p></div>`;
+            return;
+        }
+
+        let html = '';
+        data.products.forEach(p => {
+            const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://placehold.co/100x100?text=No+Img';
+            const price = "Rp " + p.price.toLocaleString('id-ID');
+            
+            html += `
+            <div class="product-card-item" onclick="alert('Fitur Beli Detail akan dikembangkan selanjutnya!\\nKontak Penjual: ${p.userPhone}')">
+                <img src="${imgUrl}" class="prod-thumb">
+                <div class="prod-info">
+                    <div class="prod-title">${p.title}</div>
+                    <div class="prod-price">${price}</div>
+                    <div style="font-size:10px; color:#666; margin-top:5px;">
+                        <i class="fas fa-user-check" style="color:#10b981;"></i> ${p.username}
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    <i class="fas fa-chevron-right" style="color:#ccc;"></i>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    } catch(e) { container.innerHTML = `<p style="text-align:center; color:red;">Gagal memuat produk.</p>`; }
 }
 
 /* ============================================== */
-/* --- SLIDER SWIPE --- */
+/* --- 9. SLIDER SWIPE --- */
 /* ============================================== */
 function setupSliderSwipe() {
     const wrapper = document.getElementById('slider-wrapper');
@@ -666,13 +808,12 @@ function setupSliderSwipe() {
 }
 
 /* ============================================== */
-/* --- LOGIN STATE & RENDER UI --- */
+/* --- 10. LOGIN STATE & PROFIL --- */
 /* ============================================== */
 
 function checkLoginState() {
     const userSession = localStorage.getItem('user');
     const headerAuthArea = document.getElementById('headerAuthArea');
-    
     renderNavbar(); 
 
     if (userSession) {
@@ -705,12 +846,10 @@ function renderAuthPages(isLoggedIn, user, isOwner) {
     if (!isLoggedIn) {
         if(profileContent) profileContent.innerHTML = loginPromptHTML;
         if(settingsContent) settingsContent.innerHTML = loginPromptHTML;
-        // Reset foto profile di navbar
         if(navProfileImg) navProfileImg.innerHTML = `<img src="https://api.deline.web.id/76NssFHmcI.png">`;
     } else {
         const userInitial = user.username.charAt(0).toUpperCase();
 
-        // Update foto profile di navbar
         if(navProfileImg) {
             navProfileImg.innerHTML = user.profilePic 
                 ? `<img src="${user.profilePic}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
@@ -734,7 +873,7 @@ function renderAuthPages(isLoggedIn, user, isOwner) {
                 </div>`;
         }
 
-        // --- PENGATURAN PAGE ---
+        // --- SETTINGS PAGE ---
         if(settingsContent) {
             const avatarDisplay = user.profilePic 
                 ? `<img src="${user.profilePic}" class="avatar-circle-display" style="border:none;">`
@@ -783,7 +922,6 @@ function renderAuthPages(isLoggedIn, user, isOwner) {
                                 <label class="form-label">Nomor WhatsApp</label>
                                 <input type="text" class="${inputClass}" value="${user.phone}" ${readOnlyAttr} readonly>
                             </div>
-
                             <div class="form-group-styled">
                                 <label class="form-label">Password</label>
                                 <div class="form-input-styled clickable" onclick="openChangePassModal()"><span>••••••••</span><i class="fas fa-pen" style="color:#205081; font-size:12px;"></i></div>
@@ -807,9 +945,8 @@ function logoutUser() {
 }
 
 /* ============================================== */
-/* --- USER VERIFICATION FLOW --- */
+/* --- 11. VERIFIKASI USER --- */
 /* ============================================== */
-
 function openVerificationModal() {
     const user = JSON.parse(localStorage.getItem('user'));
     if(!user) return;
@@ -832,17 +969,12 @@ async function handleVerificationConfirm(e) {
     const newPhone = document.getElementById('verifPhone').value;
     
     setLoading('btnVerifConfirm', true, "KONFIRMASI");
-
     try {
         const res = await fetch(`${API_URL}/request-otp`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-                email: newEmail, username: newUsername, phone: newPhone, type: 'verification_update' 
-            })
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ email: newEmail, username: newUsername, phone: newPhone, type: 'verification_update' })
         });
         const data = await res.json();
-        
         if(data.success) {
             document.getElementById('verifStep1').style.display = 'none';
             document.getElementById('verifStep2').style.display = 'block';
@@ -856,7 +988,6 @@ async function handleVerificationConfirm(e) {
 async function handleVerificationSubmitOtp() {
     const user = JSON.parse(localStorage.getItem('user'));
     const otp = document.getElementById('verifOtpCode').value;
-    
     const newUsername = document.getElementById('verifUsername').value;
     const newEmail = document.getElementById('verifEmail').value;
     const newPhone = document.getElementById('verifPhone').value;
@@ -866,15 +997,10 @@ async function handleVerificationSubmitOtp() {
 
     try {
         const res = await fetch(`${API_URL}/submit-verification`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                originalEmail: user.email,
-                newUsername, newEmail, newPhone, otp
-            })
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ originalEmail: user.email, newUsername, newEmail, newPhone, otp })
         });
         const data = await res.json();
-
         if(data.success) {
             showAlert("Permintaan Verifikasi Terkirim! Menunggu persetujuan Admin.", "Sukses");
             localStorage.setItem('user', JSON.stringify(data.user)); 
@@ -887,9 +1013,8 @@ async function handleVerificationSubmitOtp() {
     finally { setLoading('btnVerifSubmit', false, "KIRIM & VERIFIKASI"); }
 }
 
-
 /* ============================================== */
-/* --- ADMIN DASHBOARD --- */
+/* --- 12. ADMIN DASHBOARD --- */
 /* ============================================== */
 
 function loadAdminTab(tab, element) {
@@ -901,6 +1026,7 @@ function loadAdminTab(tab, element) {
 
     if (tab === 'users') fetchAdminUsers();
     else if (tab === 'verif') fetchAdminVerifications();
+    else if (tab === 'acc') fetchAdminProductAcc();
     else container.innerHTML = `<div class="empty-state-placeholder"><p>Menu ${tab} kosong.</p></div>`;
 }
 
@@ -915,7 +1041,6 @@ async function fetchAdminUsers() {
 function renderAdminUserList(users) {
     const container = document.getElementById('admin-content-area');
     if(!users || users.length === 0) { container.innerHTML = "<p>User kosong.</p>"; return; }
-
     let html = `<div class="admin-list-container">`;
     users.forEach(u => {
         const uniqueId = `user_detail_${u._id}`;
@@ -930,14 +1055,12 @@ function renderAdminUserList(users) {
                     <div class="acc-row"><span>No HP:</span> <b>${u.phone}</b></div>
                     <div class="acc-row"><span>Pass:</span> <b style="color:#e74c3c;">${u.password}</b></div>
                     <div class="acc-row"><span>Status:</span> <b>${u.verificationStatus || 'unverified'}</b></div>
-                    
                     <div class="acc-actions">
                          <button class="btn-acc-action edit" onclick='openAdminEditModal(${JSON.stringify(u)})'>Edit</button>
                          <button class="btn-acc-action delete" onclick="deleteUser('${u._id}', '${u.username}')">Hapus</button>
                     </div>
                 </div>
-            </div>
-        `;
+            </div>`;
     });
     html += `</div>`;
     container.innerHTML = html;
@@ -954,10 +1077,8 @@ async function fetchAdminVerifications() {
 function renderAdminVerifList(users) {
     const container = document.getElementById('admin-content-area');
     if(!users || users.length === 0) { 
-        container.innerHTML = `<div class="empty-state-placeholder"><i class="fas fa-check-double"></i><p>Tidak ada permintaan verifikasi.</p></div>`; 
-        return; 
+        container.innerHTML = `<div class="empty-state-placeholder"><i class="fas fa-check-double"></i><p>Tidak ada permintaan verifikasi.</p></div>`; return; 
     }
-
     let html = `<div class="admin-list-container">`;
     users.forEach(u => {
         const uniqueId = `verif_detail_${u._id}`;
@@ -975,17 +1096,75 @@ function renderAdminVerifList(users) {
                          <button class="btn-acc-action reject" onclick="adminVerifyAction('${u._id}', 'reject')">Tolak</button>
                     </div>
                 </div>
-            </div>
-        `;
+            </div>`;
     });
     html += `</div>`;
     container.innerHTML = html;
 }
 
+/* --- ADMIN ACC PRODUK (NEW) --- */
+async function fetchAdminProductAcc() {
+    try {
+        const res = await fetch(`${API_URL}/admin/products/pending`);
+        const data = await res.json();
+        renderAdminAccList(data.products);
+    } catch (e) { document.getElementById('admin-content-area').innerText = "Error loading acc."; }
+}
+
+function renderAdminAccList(products) {
+    const container = document.getElementById('admin-content-area');
+    if(!products || products.length === 0) { 
+        container.innerHTML = `<div class="empty-state-placeholder"><i class="fas fa-check-double"></i><p>Tidak ada produk pending.</p></div>`; return; 
+    }
+    let html = `<div class="admin-list-container">`;
+    products.forEach(p => {
+        const uniqueId = `prod_acc_${p._id}`;
+        let imgHtml = '';
+        if(p.images && p.images.length > 0) {
+            imgHtml = '<div class="acc-img-grid">';
+            p.images.forEach(img => imgHtml += `<img src="${img}" class="acc-img-thumb">`);
+            imgHtml += '</div>';
+        }
+        html += `
+            <div class="admin-acc-item warning-border">
+                <div class="admin-acc-header" onclick="toggleAccordion('${uniqueId}')">
+                    <span class="acc-title"><i class="fas fa-box"></i> ${p.title}</span>
+                    <i class="fas fa-chevron-down acc-icon"></i>
+                </div>
+                <div id="${uniqueId}" class="admin-acc-body" style="display:none;">
+                    <div class="acc-row"><span>User:</span> <b>${p.username}</b></div>
+                    <div class="acc-row"><span>Kategori:</span> <b>${p.subCategory}</b></div>
+                    <div class="acc-row"><span>Harga:</span> <b>${p.price}</b></div>
+                    <div class="acc-row"><span>Payment:</span> <b>${p.paymentMethod} - ${p.paymentNumber}</b></div>
+                    <div style="margin:5px 0; font-style:italic;">"${p.description}"</div>
+                    ${imgHtml}
+                    <div class="acc-actions">
+                         <button class="btn-acc-action approve" onclick="adminProductAction('${p._id}', 'approve')">Terima</button>
+                         <button class="btn-acc-action reject" onclick="adminProductAction('${p._id}', 'reject')">Tolak</button>
+                    </div>
+                </div>
+            </div>`;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+async function adminProductAction(productId, action) {
+    if(!confirm(`Yakin ingin ${action === 'approve' ? 'Menerima' : 'Menolak'} produk ini?`)) return;
+    try {
+        const res = await fetch(`${API_URL}/admin/products/action`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ productId, action })
+        });
+        const data = await res.json();
+        if(data.success) { showAlert(data.message, "Info"); fetchAdminProductAcc(); } 
+        else showAlert("Gagal.", "Error");
+    } catch(e) { showAlert("Error Server", "Error"); }
+}
+
 function toggleAccordion(id) {
     const el = document.getElementById(id);
-    if(el.style.display === 'none') el.style.display = 'block';
-    else el.style.display = 'none';
+    el.style.display = (el.style.display === 'none') ? 'block' : 'none';
 }
 
 async function adminVerifyAction(userId, action) {
@@ -1019,7 +1198,6 @@ function openAdminEditModal(user) {
     document.getElementById('editUserPhone').value = user.phone;
     document.getElementById('editUserPass').value = user.password;
 }
-
 function closeAdminEditModal() { authOverlay.classList.remove('active'); }
 
 async function handleAdminUpdateUser(e) {
@@ -1041,7 +1219,7 @@ async function handleAdminUpdateUser(e) {
 }
 
 /* ============================================== */
-/* --- CROPPER UTILS --- */
+/* --- 13. CROPPER UTILS --- */
 /* ============================================== */
 function setupFileUploadListener() {
     const fileInput = document.getElementById('fileInput');
@@ -1085,4 +1263,37 @@ async function updateProfilePicOnServer(base64Image) {
             closeCropModal(); checkLoginState();
         }
     } catch (e) {}
+}
+
+/* ============================================== */
+/* --- 14. CHANGE PASSWORD --- */
+/* ============================================== */
+function openChangePassModal() {
+    closeAuthModal(); 
+    setTimeout(() => {
+        authOverlay.classList.add('active'); 
+        boxChangePass.style.display = 'block'; 
+        boxChangePass.style.zIndex = '2001';
+    }, 150);
+}
+
+async function handleChangePassword(e) {
+    e.preventDefault();
+    const user = JSON.parse(localStorage.getItem('user'));
+    const oldPass = document.getElementById('oldPass').value;
+    const newPass = document.getElementById('newPass').value;
+    const btn = e.target.querySelector('button');
+    const oldText = btn.innerText;
+    btn.innerHTML = "Memproses..."; btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/change-password`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ email: user.email, oldPass, newPass })
+        });
+        const data = await res.json();
+        if(data.success) { showAlert("Password berhasil diperbarui!", "Sukses"); closeAuthModal(); } 
+        else { showAlert(data.message || "Gagal mengubah password.", "Gagal"); }
+    } catch (e) { showAlert("Error Server", "Error"); } 
+    finally { btn.innerText = oldText; btn.disabled = false; }
 }

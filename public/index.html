@@ -12,14 +12,13 @@
 
     <div class="container">
         
-        <div id="home-page" class="page-section">
+        <div id="home-page" class="page-section active">
             <header class="header" id="mainHeader">
                 <div class="top-bar">
                     <div class="logo">
                         <i class="fas fa-bars"></i> Maishipro <i class="fas fa-cube" style="margin-left:5px; font-size:16px;"></i>
                     </div>
-                    <div class="header-actions" id="headerAuthArea">
-                        </div>
+                    <div class="header-actions" id="headerAuthArea"></div>
                 </div>
 
                 <div class="search-bar">
@@ -134,7 +133,7 @@
                     <i class="fas fa-comments"></i> Chat
                 </div>
                 <div class="admin-menu-item" onclick="loadAdminTab('acc', this)">
-                    <i class="fas fa-file-invoice"></i> Acc
+                    <i class="fas fa-file-invoice"></i> Acc Produk
                 </div>
             </div>
 
@@ -158,8 +157,7 @@
                     <div class="logo">Katalog Produk</div>
                 </div>
             </header>
-            <div id="produk-content" class="dynamic-content">
-                </div>
+            <div id="produk-content" class="dynamic-content"></div>
         </div>
 
         <div id="pengaturan-page" class="page-section">
@@ -202,9 +200,11 @@
                 <div class="floating-circle"><img src="https://api.deline.web.id/76NssFHmcI.png"></div>
                 <span>Profile</span>
             </div>
+
             <div class="nav-item" id="nav-produk" onclick="switchMainTab('produk')">
                 <i class="fas fa-shopping-basket"></i><span>Produk</span>
             </div>
+
             <div class="nav-item" id="nav-pengaturan" onclick="switchMainTab('pengaturan')">
                 <i class="fas fa-cog"></i><span>Pengaturan</span>
             </div>
@@ -375,6 +375,72 @@
             </form>
         </div>
 
+    </div>
+
+    <div id="addProductModal" class="auth-overlay">
+        <div class="auth-box" style="max-height: 90vh; overflow-y: auto;">
+            <span class="close-auth" onclick="closeAddProductModal()">&times;</span>
+            <h2 class="auth-title">Jual Produk</h2>
+            
+            <form onsubmit="handleProductSubmit(event)">
+                <div class="form-group-styled">
+                    <label class="form-label">Kategori Utama</label>
+                    <select id="prodMainCat" class="form-input-styled" onchange="updateSubCategories()" required>
+                        <option value="">-- Pilih --</option>
+                        <option value="Akun Game">Akun Game</option>
+                        <option value="Top Up Game">Top Up Game</option>
+                        <option value="Joki Game">Joki Game</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                
+                <div class="form-group-styled" id="subCatContainer" style="display:none;">
+                    <label class="form-label">Sub Kategori</label>
+                    <select id="prodSubCat" class="form-input-styled" required>
+                        </select>
+                </div>
+
+                <div class="form-group-styled" style="margin-top:15px;">
+                    <label class="form-label">Foto Produk (Max 5, @2MB)</label>
+                    <div class="image-upload-grid" id="imagePreviewGrid">
+                        <div class="add-img-box" onclick="triggerProductImgUpload()">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="prodImgInput" accept="image/*" multiple style="display:none;" onchange="handleProductImgChange(this)">
+                </div>
+
+                <div class="input-with-icon">
+                    <i class="fas fa-tag input-icon-left"></i>
+                    <input type="text" id="prodTitle" placeholder="Nama Produk (cth: Akun FF Sultan)" required>
+                </div>
+                
+                <div class="input-with-icon">
+                    <textarea id="prodDesc" class="form-input-styled" rows="3" placeholder="Deskripsi Lengkap..." style="padding:10px;" required></textarea>
+                </div>
+
+                <div class="input-with-icon">
+                    <i class="fas fa-money-bill-wave input-icon-left"></i>
+                    <input type="text" id="prodPrice" placeholder="Harga (cth: 50.000)" oninput="formatPriceInput(this)" required>
+                </div>
+
+                <div class="form-group-styled">
+                    <label class="form-label">Metode Pembayaran (Terima Saldo)</label>
+                    <select id="prodPaymentMethod" class="form-input-styled" required>
+                        <option value="">-- Pilih --</option>
+                        <option value="DANA">DANA</option>
+                        <option value="Gopay">Gopay</option>
+                    </select>
+                </div>
+
+                <div class="input-with-icon">
+                    <i class="fas fa-wallet input-icon-left"></i>
+                    <input type="number" id="prodPaymentNum" placeholder="Nomor E-Wallet (08xxx)" oninput="validatePhonePrefix(this)" required>
+                </div>
+
+                <button type="submit" class="btn-auth-action" id="btnUploadProd">UPLOAD PRODUK</button>
+            </form>
+        </div>
     </div>
 
     <div id="customAlertModal" class="custom-alert-overlay" style="display: none;">
