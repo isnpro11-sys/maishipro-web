@@ -58,7 +58,7 @@ const OtpSchema = new mongoose.Schema({
 });
 const OTP = mongoose.models.OTP || mongoose.model('OTP', OtpSchema);
 
-// --- PRODUCT SCHEMA (BARU) ---
+// --- PRODUCT SCHEMA (BARU - DENGAN STOCK) ---
 const ProductSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     username: String, // Simpan username agar query admin lebih cepat
@@ -68,6 +68,7 @@ const ProductSchema = new mongoose.Schema({
     title: String,
     description: String,
     price: Number,
+    stock: { type: Number, default: 1 }, // --- TAMBAHAN FIELD STOCK ---
     paymentMethod: String, // Dana / Gopay
     paymentNumber: String,
     images: [String], // Array of Base64 strings
@@ -287,11 +288,11 @@ app.post('/api/update-pic', async (req, res) => {
 // --- PRODUCT ROUTES (BARU) ---
 // ==========================================
 
-// 1. Upload Produk Baru
+// 1. Upload Produk Baru (UPDATED: MENERIMA STOCK)
 app.post('/api/products/add', async (req, res) => {
     try {
         await connectDB();
-        const { email, mainCategory, subCategory, title, description, price, paymentMethod, paymentNumber, images } = req.body;
+        const { email, mainCategory, subCategory, title, description, price, stock, paymentMethod, paymentNumber, images } = req.body;
         
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
@@ -306,6 +307,7 @@ app.post('/api/products/add', async (req, res) => {
             username: user.username,
             userPhone: user.phone,
             mainCategory, subCategory, title, description, price, 
+            stock: stock || 1, // --- SIMPAN STOCK (Default 1) ---
             paymentMethod, paymentNumber, images,
             status: 'pending'
         });
