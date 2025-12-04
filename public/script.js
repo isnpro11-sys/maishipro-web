@@ -1317,51 +1317,76 @@ async function handleChangePassword(e) {
 }
 
 /* ============================================== */
-/* --- 15. SINGLE PRODUCT DETAIL PAGE LOGIC --- */
+/* --- 15. SINGLE PRODUCT DETAIL & SELLER LOGIC --- */
 /* ============================================== */
 
+// Global Variable untuk Carousel
+let currentDetailImages = [];
+let currentDetailIndex = 0;
+
 function openProductDetail(product) {
-    // 1. Sembunyikan halaman lain
+    // 1. UI Reset
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-    
-    // 2. Tampilkan halaman detail produk
     const detailPage = document.getElementById('single-product-page');
     detailPage.classList.add('active');
     window.scrollTo(0, 0);
+
+    // 2. Setup Images & Carousel State
+    currentDetailImages = (product.images && product.images.length > 0) 
+        ? product.images 
+        : ['https://placehold.co/400x300?text=No+Img'];
+    currentDetailIndex = 0;
 
     // 3. Render Konten
     const contentDiv = document.getElementById('single-product-content');
     const buyArea = document.getElementById('floating-buy-area');
     
-    const imgUrl = (product.images && product.images.length > 0) ? product.images[0] : 'https://placehold.co/400x300?text=No+Img';
     const price = "Rp " + product.price.toLocaleString('id-ID');
     const stock = product.stock || 1;
-
+    
+    // HTML Konten
     contentDiv.innerHTML = `
         <div class="sp-image-container">
-            <img src="${imgUrl}" class="sp-main-img">
-        </div>
-        <div class="sp-content">
-            <div class="sp-price-tag">${price}</div>
-            <div class="sp-title">${product.title}</div>
-            <div class="sp-stock-badge"><i class="fas fa-check-circle"></i> Stok Tersedia: ${stock}</div>
+            <img src="${currentDetailImages[0]}" class="sp-main-img" id="detailMainImg" onclick="openLightbox()">
             
-            <div style="font-weight:bold; margin-bottom:8px; color:#333;">Deskripsi Produk</div>
-            <div class="sp-desc-box">
-                ${product.description.replace(/\n/g, '<br>')}
+            ${currentDetailImages.length > 1 ? `
+                <div class="sp-arrow left" onclick="changeProductSlide(-1)"><i class="fas fa-chevron-left"></i></div>
+                <div class="sp-arrow right" onclick="changeProductSlide(1)"><i class="fas fa-chevron-right"></i></div>
+                <div class="sp-dots" id="carouselDots">
+                    ${currentDetailImages.map((_, i) => `<div class="sp-dot ${i===0?'active':''}"></div>`).join('')}
+                </div>
+            ` : ''}
+        </div>
+
+        <div class="sp-content">
+            <div class="sp-stock-badge-corner">
+                <i class="fas fa-check-circle"></i> Stok: ${stock}
             </div>
 
-            <div class="sp-seller-info">
-                <i class="fas fa-store" style="font-size:20px; color:#205081;"></i>
-                <div>
-                    <div style="font-size:12px; color:#888;">Penjual</div>
-                    <div style="font-weight:bold;">${product.username || 'Seller'}</div>
+            <div class="sp-price-tag">${price}</div>
+            <div class="sp-title">${product.title}</div>
+            
+            <div class="sp-seller-box-clickable" onclick="openSellerProfile('${product.userId}')">
+                <img src="https://api.deline.web.id/76NssFHmcI.png" class="sp-seller-pic-small" id="miniSellerPic">
+                <div style="flex:1;">
+                    <div style="font-size:11px; color:#888;">Penjual</div>
+                    <div style="font-weight:bold; font-size:14px;">${product.username || 'Seller'}</div>
+                    <div style="font-size:10px; color:#205081;">Klik untuk lihat profil</div>
                 </div>
+                <i class="fas fa-chevron-right" style="color:#ccc;"></i>
+            </div>
+
+            <div style="font-weight:bold; margin: 20px 0 8px 0; color:#333;">Deskripsi Produk</div>
+            <div class="sp-desc-box">
+                ${product.description.replace(/\n/g, '<br>')}
             </div>
         </div>
     `;
 
-    // 4. Setup Tombol Beli (Direct WA)
+    // Fetch gambar profil mini untuk kotak penjual (agar tidak statis)
+    fetchSellerMiniPic(product.userId);
+
+    // 4. Setup Tombol Beli
     const waMessage = `Halo, saya ingin membeli *${product.title}* seharga *${price}*. Apakah stok masih ada?`;
     const waLink = `https://wa.me/${product.userPhone}?text=${encodeURIComponent(waMessage)}`;
 
@@ -1372,8 +1397,132 @@ function openProductDetail(product) {
     `;
 }
 
+// Helper untuk fetch foto seller di halaman detail (kecil)
+async function fetchSellerMiniPic(userId) {
+    try {
+        const res = await fetch(`${API_URL}/public/seller/${userId}`);
+        const data = await res.json();
+        if(data.success && data.seller.profilePic) {
+            const img = document.getElementById('miniSellerPic');
+            if(img) img.src = data.seller.profilePic;
+        }
+    } catch(e) {}
+}
+
 function closeProductDetail() {
-    // Kembali ke halaman detail kategori (list produk)
     document.getElementById('single-product-page').classList.remove('active');
     document.getElementById('detail-page').classList.add('active');
 }
+
+/* --- LOGIKA CAROUSEL --- */
+function changeProductSlide(direction) {
+    currentDetailIndex += direction;
+    if (currentDetailIndex < 0) currentDetailIndex = currentDetailImages.length - 1;
+    if (currentDetailIndex >= currentDetailImages.length) currentDetailIndex = 0;
+    updateCarouselUI();
+}
+
+function updateCarouselUI() {
+    const img = document.getElementById('detailMainImg');
+    const dots = document.querySelectorAll('.sp-dot');
+    
+    if(img) {
+        img.style.opacity = '0.5';
+        setTimeout(() => {
+            img.src = currentDetailImages[currentDetailIndex];
+            img.style.opacity = '1';
+        }, 150);
+    }
+
+    if(dots.length > 0) {
+        dots.forEach(d => d.classList.remove('active'));
+        if(dots[currentDetailIndex]) dots[currentDetailIndex].classList.add('active');
+    }
+}
+
+/* --- LOGIKA LIGHTBOX (ZOOM FOTO) --- */
+function openLightbox() {
+    const modal = document.getElementById('lightboxModal');
+    const img = document.getElementById('lightboxImage');
+    img.src = currentDetailImages[currentDetailIndex];
+    modal.style.display = 'flex';
+}
+function closeLightbox() {
+    document.getElementById('lightboxModal').style.display = 'none';
+}
+
+/* --- LOGIKA SELLER PROFILE MODAL --- */
+async function openSellerProfile(userId) {
+    const modal = document.getElementById('sellerProfileModal');
+    const containerProd = document.getElementById('sellerOtherProducts');
+    
+    modal.style.display = 'flex';
+    document.body.classList.add('lock-scroll');
+    
+    // Reset UI dulu
+    document.getElementById('spSellerImg').src = "https://api.deline.web.id/76NssFHmcI.png";
+    document.getElementById('spSellerName').innerText = "Memuat...";
+    document.getElementById('spSellerEmail').innerText = "...";
+    document.getElementById('spSellerPhone').innerText = "...";
+    document.getElementById('spSellerLevel').innerText = "...";
+    containerProd.innerHTML = '<div style="text-align:center; grid-column:span 2; margin-top:20px;"><i class="fas fa-spinner fa-spin"></i> Memuat Data...</div>';
+
+    try {
+        const res = await fetch(`${API_URL}/public/seller/${userId}`);
+        const data = await res.json();
+
+        if (data.success) {
+            const s = data.seller;
+            
+            // Render Info Seller
+            document.getElementById('spSellerName').innerText = s.username;
+            document.getElementById('spSellerEmail').innerText = s.email;
+            document.getElementById('spSellerPhone').innerText = s.phone;
+            document.getElementById('spSellerLevel').innerText = s.sellerLevel;
+            if(s.profilePic) document.getElementById('spSellerImg').src = s.profilePic;
+
+            // Render Produk Seller
+            if(data.products && data.products.length > 0) {
+                let html = '';
+                data.products.forEach(p => {
+                    const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://placehold.co/100x100?text=No+Img';
+                    const price = "Rp " + p.price.toLocaleString('id-ID');
+                    
+                    // JSON Safe stringify
+                    const safeProd = JSON.stringify(p).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+                    html += `
+                    <div class="public-card" onclick='closeSellerProfile(); openProductDetail(${safeProd})'>
+                        <div class="pc-img-box" style="aspect-ratio: 1/1;">
+                            <img src="${imgUrl}" class="pc-img">
+                        </div>
+                        <div class="pc-info">
+                            <div class="pc-title" style="font-size:12px;">${p.title}</div>
+                            <div class="pc-price" style="font-size:12px;">${price}</div>
+                        </div>
+                    </div>`;
+                });
+                containerProd.innerHTML = html;
+            } else {
+                containerProd.innerHTML = '<div style="text-align:center; padding:20px; color:#888; grid-column:span 2;">Tidak ada produk lain.</div>';
+            }
+        }
+    } catch(e) {
+        console.error(e);
+        containerProd.innerHTML = '<p style="color:red; text-align:center;">Gagal memuat data.</p>';
+    }
+}
+
+function closeSellerProfile() {
+    document.getElementById('sellerProfileModal').style.display = 'none';
+    document.body.classList.remove('lock-scroll');
+}
+
+function viewSellerAvatarFull() {
+    const src = document.getElementById('spSellerImg').src;
+    const modal = document.getElementById('lightboxModal');
+    const img = document.getElementById('lightboxImage');
+    img.src = src;
+    modal.style.display = 'flex';
+}
+

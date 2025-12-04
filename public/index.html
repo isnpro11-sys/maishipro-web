@@ -485,6 +485,44 @@
             </div>
         </div>
     </div>
+    
+    <div id="lightboxModal" class="lightbox-overlay" style="display: none;" onclick="closeLightbox()">
+        <span class="close-lightbox">&times;</span>
+        <img id="lightboxImage" class="lightbox-content">
+    </div>
+
+    <div id="sellerProfileModal" class="auth-overlay" style="z-index: 2500;">
+        <div class="auth-box seller-profile-box" style="max-height: 85vh; overflow-y: auto; padding: 0;">
+            <div class="seller-header-bg">
+                <span class="close-auth-white" onclick="closeSellerProfile()">&times;</span>
+            </div>
+            <div class="seller-profile-content">
+                <div class="seller-avatar-container">
+                    <img id="spSellerImg" src="" onclick="viewSellerAvatarFull()">
+                </div>
+                <div class="seller-main-info">
+                    <h3 id="spSellerName">Username</h3>
+                    <div class="seller-level-badge" id="spSellerLevel">Newbie</div>
+                </div>
+                
+                <div class="seller-detail-rows">
+                    <div class="sd-row">
+                        <i class="fas fa-envelope"></i> <span id="spSellerEmail">em***@gmail.com</span>
+                    </div>
+                    <div class="sd-row">
+                        <i class="fas fa-phone"></i> <span id="spSellerPhone">08***</span>
+                    </div>
+                </div>
+
+                <div class="section-divider-text" style="margin-top: 20px; font-size: 14px;">Produk dari Penjual ini</div>
+                
+                <div id="sellerOtherProducts" class="public-prod-grid" style="grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0;">
+                    <div style="text-align:center; width:100%; grid-column:span 2;">Memuat...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <input type="file" id="fileInput" accept="image/*" style="display: none;">
     

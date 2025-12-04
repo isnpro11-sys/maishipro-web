@@ -981,3 +981,178 @@ body.lock-scroll { overflow: hidden !important; height: 100vh; }
     gap: 8px;
 }
 .btn-buy-wa:hover { background: #20bd5a; }
+
+/* ========================================= */
+/* --- UPDATE TAMPILAN PRODUK (STOCK & CAROUSEL) --- */
+/* ========================================= */
+
+/* Container Content agar bisa absolute positioning */
+.sp-content {
+    position: relative; 
+    /* Pastikan padding-top cukup agar judul tidak nabrak stock */
+    padding-top: 25px; 
+}
+
+/* Stock Badge di Kanan Atas Putih */
+.sp-stock-badge-corner {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #d1fae5;
+    color: #065f46;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Carousel Container */
+.sp-image-container {
+    position: relative;
+    background: #000;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Tombol Geser (Arrows) */
+.sp-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.3);
+    color: white;
+    width: 35px; height: 35px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 18px;
+    backdrop-filter: blur(2px);
+}
+.sp-arrow.left { left: 10px; }
+.sp-arrow.right { right: 10px; }
+
+/* Indikator Titik (...) */
+.sp-dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 5px;
+    z-index: 10;
+}
+.sp-dot {
+    width: 6px; height: 6px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    transition: 0.3s;
+}
+.sp-dot.active {
+    background: #fff;
+    width: 15px;
+    border-radius: 10px;
+}
+
+/* Seller Info Box (Clickable) */
+.sp-seller-box-clickable {
+    margin-top: 20px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    background: #fff;
+    transition: 0.2s;
+}
+.sp-seller-box-clickable:active { background: #f9f9f9; transform: scale(0.98); }
+.sp-seller-pic-small {
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+/* --- LIGHTBOX (ZOOM) STYLES --- */
+.lightbox-overlay {
+    position: fixed;
+    z-index: 3000;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(5px);
+}
+.lightbox-content {
+    max-width: 95%;
+    max-height: 80vh;
+    border-radius: 5px;
+    box-shadow: 0 0 20px rgba(255,255,255,0.1);
+}
+.close-lightbox {
+    position: absolute;
+    top: 20px; right: 25px;
+    color: white; font-size: 35px;
+    cursor: pointer; font-weight: bold;
+}
+
+/* --- SELLER PROFILE MODAL STYLES --- */
+.seller-profile-box {
+    overflow: hidden;
+    position: relative;
+    width: 90%;
+    max-width: 400px;
+    background: #fff;
+}
+.seller-header-bg {
+    height: 80px;
+    background: linear-gradient(135deg, #205081, #1e3a8a);
+    position: relative;
+}
+.close-auth-white {
+    position: absolute; top: 10px; right: 15px;
+    color: white; font-size: 28px; cursor: pointer;
+}
+.seller-profile-content {
+    padding: 0 20px 20px 20px;
+    margin-top: -40px; /* Overlap header */
+    text-align: center;
+}
+.seller-avatar-container img {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 4px solid white;
+    background: white;
+    object-fit: cover;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: zoom-in;
+}
+.seller-main-info { margin-top: 5px; margin-bottom: 15px; }
+.seller-main-info h3 { margin: 0; color: #333; font-size: 18px; }
+.seller-level-badge {
+    display: inline-block;
+    background: #ffeb3b; color: #205081;
+    font-size: 10px; font-weight: bold;
+    padding: 2px 8px; border-radius: 10px;
+    margin-top: 4px;
+}
+.seller-detail-rows {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: left;
+    margin-bottom: 15px;
+}
+.sd-row {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: #555; margin-bottom: 8px;
+}
+.sd-row:last-child { margin-bottom: 0; }
+.sd-row i { color: #205081; width: 20px; text-align: center; }
