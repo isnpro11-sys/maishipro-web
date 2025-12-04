@@ -9,11 +9,12 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // Limit ditingkatkan untuk upload gambar base64
+app.use(express.json({ limit: '10mb' })); // Limit besar untuk upload gambar base64
 
 // ==========================================
 // --- KONFIGURASI ADMIN ---
 // ==========================================
+// Ganti dengan email admin yang sebenarnya
 const ADMIN_EMAILS = ["ilyassyuhada00@gmail.com", "admin@gmail.com"]; 
 
 // ==========================================
@@ -58,7 +59,7 @@ const OtpSchema = new mongoose.Schema({
 });
 const OTP = mongoose.models.OTP || mongoose.model('OTP', OtpSchema);
 
-// --- PRODUCT SCHEMA (BARU - DENGAN STOCK) ---
+// --- PRODUCT SCHEMA ---
 const ProductSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     username: String, // Simpan username agar query admin lebih cepat
@@ -68,7 +69,7 @@ const ProductSchema = new mongoose.Schema({
     title: String,
     description: String,
     price: Number,
-    stock: { type: Number, default: 1 }, // --- TAMBAHAN FIELD STOCK ---
+    stock: { type: Number, default: 1 }, // Field Stock
     paymentMethod: String, // Dana / Gopay
     paymentNumber: String,
     images: [String], // Array of Base64 strings
@@ -77,7 +78,7 @@ const ProductSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-// TTL Index: Dokumen akan otomatis dihapus MongoDB 5 menit (300 detik) setelah rejectedAt terisi
+// TTL Index: Dokumen otomatis dihapus MongoDB 5 menit (300 detik) setelah rejectedAt terisi
 ProductSchema.index({ rejectedAt: 1 }, { expireAfterSeconds: 300 });
 
 const Product = mongoose.models.Product || mongoose.model('Product', ProductSchema);
@@ -198,7 +199,7 @@ app.post('/api/submit-verification', async (req, res) => {
         await connectDB();
         const { originalEmail, newUsername, newEmail, newPhone, otp } = req.body;
 
-        // 1. Cek OTP (dikirim ke email BARU jika diganti, atau email LAMA jika tidak)
+        // 1. Cek OTP
         const targetEmail = newEmail || originalEmail;
         const validOtp = await OTP.findOne({ email: targetEmail, code: otp });
         
@@ -209,13 +210,13 @@ app.post('/api/submit-verification', async (req, res) => {
             username: newUsername,
             email: newEmail,
             phone: newPhone,
-            verificationStatus: 'pending' // Status berubah jadi Pending
+            verificationStatus: 'pending' 
         };
 
         const updatedUser = await User.findOneAndUpdate(
             { email: originalEmail }, 
             updateData, 
-            { new: true } // Return user baru
+            { new: true } 
         );
 
         if (!updatedUser) return res.status(404).json({ success: false, message: "User tidak ditemukan." });
@@ -255,14 +256,14 @@ app.post('/api/login', async (req, res) => {
 
         res.json({ 
             success: true, 
-            userData: user // Mengirim object user lengkap termasuk verificationStatus
+            userData: user 
         });
     } catch (e) {
         res.status(500).json({ success: false, message: "Error Login" });
     }
 });
 
-// Get Single User Data
+// Get Single User Data (Refresh)
 app.post('/api/get-user', async (req, res) => {
     try {
         await connectDB();
@@ -284,11 +285,28 @@ app.post('/api/update-pic', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false, message: "Error Upload." }); }
 });
 
+// F. CHANGE PASSWORD
+app.post('/api/change-password', async (req, res) => {
+    try {
+        await connectDB();
+        const { email, oldPass, newPass } = req.body;
+        const user = await User.findOne({ email });
+        
+        if(!user) return res.status(404).json({ success: false, message: "User not found" });
+        if(user.password !== oldPass) return res.status(400).json({ success: false, message: "Password lama salah!" });
+
+        await User.updateOne({ email }, { password: newPass });
+        res.json({ success: true, message: "Password diubah." });
+    } catch(e) {
+        res.status(500).json({ success: false, message: "Error" });
+    }
+});
+
 // ==========================================
-// --- PRODUCT ROUTES (BARU) ---
+// --- PRODUCT ROUTES ---
 // ==========================================
 
-// 1. Upload Produk Baru (UPDATED: MENERIMA STOCK)
+// 1. Upload Produk Baru (Dengan Stok)
 app.post('/api/products/add', async (req, res) => {
     try {
         await connectDB();
@@ -297,7 +315,7 @@ app.post('/api/products/add', async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        // Validasi simpel: Wajib verified
+        // Validasi: Wajib verified
         if(user.verificationStatus !== 'verified') {
             return res.status(403).json({ success: false, message: "Akun belum terverifikasi!" });
         }
@@ -307,7 +325,7 @@ app.post('/api/products/add', async (req, res) => {
             username: user.username,
             userPhone: user.phone,
             mainCategory, subCategory, title, description, price, 
-            stock: stock || 1, // --- SIMPAN STOCK (Default 1) ---
+            stock: stock || 1, // Simpan Stock
             paymentMethod, paymentNumber, images,
             status: 'pending'
         });
@@ -319,7 +337,7 @@ app.post('/api/products/add', async (req, res) => {
     }
 });
 
-// 2. Get Produk User (List Produk Anda)
+// 2. Get Produk User (List Produk Sendiri)
 app.post('/api/products/my-products', async (req, res) => {
     try {
         await connectDB();
@@ -331,7 +349,7 @@ app.post('/api/products/my-products', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
-// 3. Admin: Get Pending Products (Untuk Menu Acc)
+// 3. Admin: Get Pending Products
 app.get('/api/admin/products/pending', async (req, res) => {
     try {
         await connectDB();
@@ -349,14 +367,14 @@ app.post('/api/admin/products/action', async (req, res) => {
         if (action === 'approve') {
             await Product.findByIdAndUpdate(productId, { status: 'active' });
         } else {
-            // Set rejectedAt agar TTL index bekerja (hapus otomatis setelah 5 menit)
+            // Set rejectedAt agar TTL index bekerja
             await Product.findByIdAndUpdate(productId, { status: 'rejected', rejectedAt: new Date() });
         }
         res.json({ success: true, message: "Status diperbarui." });
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
-// 5. Public: Get Active Products by Category (Untuk Halaman Detail/Kategori)
+// 5. Public: Get Active Products by Category
 app.get('/api/products/public/:category', async (req, res) => {
     try {
         await connectDB();
@@ -366,12 +384,48 @@ app.get('/api/products/public/:category', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
+// 6. Public: Get Seller Profile Info (Masked) & Their Products (NEW ROUTE)
+app.get('/api/public/seller/:userId', async (req, res) => {
+    try {
+        await connectDB();
+        const { userId } = req.params;
+        
+        // Ambil info user
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        // Ambil produk aktif user tersebut
+        const products = await Product.find({ userId: userId, status: 'active' }).sort({ createdAt: -1 });
+
+        // Sensor Email & Phone (Sisakan 2 huruf depan)
+        const maskData = (str) => {
+            if (!str || str.length <= 2) return str;
+            return str.substring(0, 2) + "*".repeat(str.length - 2);
+        };
+
+        const publicData = {
+            username: user.username,
+            email: maskData(user.email),
+            phone: maskData(user.phone),
+            profilePic: user.profilePic || "",
+            role: user.role,
+            sellerLevel: user.sellerLevel || "Newbie",
+            createdAt: user.createdAt
+        };
+
+        res.json({ success: true, seller: publicData, products: products });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false });
+    }
+});
+
 
 // ==========================================
 // --- ADMIN ROUTES (USER MANAGEMENT) ---
 // ==========================================
 
-// 1. Get All Users (For List)
+// 1. Get All Users
 app.get('/api/admin/users', async (req, res) => {
     try {
         await connectDB();
@@ -389,21 +443,20 @@ app.get('/api/admin/verifications', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false, message: "Error fetch pending" }); }
 });
 
-// 3. Action Verifikasi (Terima/Tolak User)
+// 3. Action Verifikasi
 app.post('/api/admin/verify-action', async (req, res) => {
     try {
         await connectDB();
-        const { userId, action } = req.body; // action: 'approve' | 'reject'
+        const { userId, action } = req.body; 
         
         const newStatus = action === 'approve' ? 'verified' : 'rejected';
-        
         await User.findByIdAndUpdate(userId, { verificationStatus: newStatus });
         
         res.json({ success: true, message: `User berhasil di-${action === 'approve' ? 'verifikasi' : 'tolak'}` });
     } catch (e) { res.status(500).json({ success: false, message: "Gagal update status." }); }
 });
 
-// 4. Delete & Edit User (Existing)
+// 4. Delete & Edit User
 app.delete('/api/admin/users/:id', async (req, res) => {
     try {
         await connectDB();
@@ -420,7 +473,7 @@ app.put('/api/admin/users/:id', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false }); }
 });
 
-// Listener untuk Local Development (Agar tidak error saat npm start)
+// Listener untuk Local Development
 if (require.main === module) {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
